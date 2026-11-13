@@ -200,24 +200,24 @@ export default function RegistrationPage() {
             </div>
 
             {/* Right Column: Mahaprabhu Jagannath & Puri Temple Artwork with Dr. Tiwari */}
-            <div className="md:col-span-5 relative flex items-end justify-center min-h-[240px] sm:min-h-[290px]">
-              {/* Puri Temple & Jagannath Deity Visual */}
-              <div className="relative w-full max-w-[340px] rounded-2xl overflow-hidden border border-amber-500/30 shadow-2xl bg-gradient-to-t from-[#051426] via-transparent to-transparent">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/assets/hero_artwork_right.png"
-                  alt="Mahaprabhu Jagannath & Sri Mandir Puri"
-                  className="w-full h-auto object-contain max-h-[270px] mx-auto filter drop-shadow-md"
-                />
-              </div>
-
+            <div className="md:col-span-5 relative flex items-end justify-center md:justify-end gap-2 sm:gap-4 min-h-[250px] sm:min-h-[290px] pt-4 md:pt-0">
               {/* Dr. Tiwari Ji Cutout in Namaste Posture */}
-              <div className="absolute -bottom-2 -left-2 sm:left-4 h-[210px] sm:h-[250px] z-20 pointer-events-none drop-shadow-2xl">
+              <div className="relative z-20 flex-shrink-0 h-[220px] sm:h-[270px] drop-shadow-2xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/assets/dr_tiwari_namaste.png"
                   alt="Dr. Purshottam Tiwari Namaste Stole"
-                  className="h-full w-auto object-contain"
+                  className="h-full w-auto object-contain filter contrast-105"
+                />
+              </div>
+
+              {/* Puri Temple & Jagannath Deity Visual */}
+              <div className="relative z-10 w-full max-w-[220px] sm:max-w-[260px] rounded-2xl overflow-hidden border border-amber-500/30 shadow-2xl bg-[#051426] flex-shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/assets/hero_artwork_right.png"
+                  alt="Mahaprabhu Jagannath & Sri Mandir Puri"
+                  className="w-full h-auto object-cover max-h-[260px] filter drop-shadow-md"
                 />
               </div>
             </div>
