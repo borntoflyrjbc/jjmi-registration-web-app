@@ -1,1 +1,1 @@
-style: refine hero artwork layout and replace round emblem with ultra high-res asset
+refactor: move Dr. Tiwari flipped to header right, full Jagannath hero artwork, and remove sub-badges

@@ -137,8 +137,8 @@ export default function RegistrationPage() {
 
         <div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-            {/* Left Column: Mission & Guidance Message */}
-            <div className="md:col-span-7 space-y-4 text-center md:text-left">
+            {/* Left Column: Mission & Divine Connection */}
+            <div className="md:col-span-6 space-y-4 text-center md:text-left">
               <div className="inline-flex items-center gap-2 bg-amber-400/15 text-amber-300 px-3.5 py-1 rounded-full text-xs font-semibold border border-amber-400/30">
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                 <span>Global Spiritual & Humanitarian Movement</span>
@@ -158,66 +158,16 @@ export default function RegistrationPage() {
                 <span className="text-amber-400 text-sm">🪷</span>
                 <span className="h-[1px] w-24 bg-gradient-to-l from-transparent to-amber-400/60" />
               </div>
-
-              {/* Spiritual Guide Spotlight Card (Dr. Purushottam Tiwari) */}
-              <div className="pt-2 flex items-center gap-3.5 bg-white/10 backdrop-blur-md border border-amber-400/30 rounded-2xl p-2.5 pr-5 max-w-fit mx-auto md:mx-0 shadow-lg">
-                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-amber-400/80 bg-amber-950 flex-shrink-0 shadow-md">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/assets/dr_tiwari_namaste.png"
-                    alt="Dr. Purshottam Tiwari in Namaste"
-                    className="w-full h-full object-cover object-top scale-110"
-                  />
-                </div>
-                <div className="text-left">
-                  <div className="text-[10px] uppercase tracking-wider text-amber-300 font-bold">
-                    Spiritual Guidance & Inspiration
-                  </div>
-                  <div className="text-sm sm:text-base font-bold text-white font-serif">
-                    Dr. Purshottam Tiwari
-                  </div>
-                  <div className="text-[11px] text-amber-100/75">
-                    Founder, Man Samvad • Mentor, Jai Jagannath Mission
-                  </div>
-                </div>
-              </div>
-
-              {/* Official Badges (Clean, No "100% verified" wording) */}
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-1 text-xs text-slate-300">
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-amber-400" />
-                  <span>Registered Sansthan • Puri Dham</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-amber-400" />
-                  <span>Instant Application Reference</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-amber-400" />
-                  <span>Official UPI Integration</span>
-                </span>
-              </div>
             </div>
 
-            {/* Right Column: Mahaprabhu Jagannath & Puri Temple Artwork with Dr. Tiwari */}
-            <div className="md:col-span-5 relative flex items-end justify-center md:justify-end gap-2 sm:gap-4 min-h-[250px] sm:min-h-[290px] pt-4 md:pt-0">
-              {/* Dr. Tiwari Ji Cutout in Namaste Posture */}
-              <div className="relative z-20 flex-shrink-0 h-[220px] sm:h-[270px] drop-shadow-2xl">
+            {/* Right Column: Full Mahaprabhu Jagannath & Puri Temple Artwork */}
+            <div className="md:col-span-6 relative flex items-center justify-center md:justify-end">
+              <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-amber-500/30 bg-[#081d36]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/assets/dr_tiwari_namaste.png"
-                  alt="Dr. Purshottam Tiwari Namaste Stole"
-                  className="h-full w-auto object-contain filter contrast-105"
-                />
-              </div>
-
-              {/* Puri Temple & Jagannath Deity Visual */}
-              <div className="relative z-10 w-full max-w-[220px] sm:max-w-[260px] rounded-2xl overflow-hidden border border-amber-500/30 shadow-2xl bg-[#051426] flex-shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/assets/hero_artwork_right.png"
-                  alt="Mahaprabhu Jagannath & Sri Mandir Puri"
-                  className="w-full h-auto object-cover max-h-[260px] filter drop-shadow-md"
+                  src="/assets/hero_artwork_full_jagannath_2x.png"
+                  alt="Mahaprabhu Jagannath & Puri Sri Mandir"
+                  className="w-full h-auto object-cover max-h-[290px] filter drop-shadow-lg"
                 />
               </div>
             </div>
