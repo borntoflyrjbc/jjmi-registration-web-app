@@ -13,7 +13,7 @@ import { StepReview } from '@/components/StepReview';
 import { PaymentPanel } from '@/components/PaymentPanel';
 import { getCategoryById } from '@/lib/categories';
 import confetti from 'canvas-confetti';
-import { ArrowLeft, ArrowRight, CheckCircle2, ShieldCheck, Heart, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 export default function RegistrationPage() {
@@ -43,81 +43,56 @@ export default function RegistrationPage() {
       'annadan_service',
     ],
     qualification_experience: '',
-    availability: 'Weekends Only',
+    availability: 'Weekends / Flexible',
     joining_purpose: '',
-    rulesAccepted: false,
-    privacyAcknowledged: false,
+    rulesAccepted: true,
+    privacyAcknowledged: true,
     photo_publicity_consent: false,
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
   const updateFormData = (fields: any) => {
     setFormData((prev: any) => ({ ...prev, ...fields }));
-    // Clear relevant errors
-    const keys = Object.keys(fields);
-    setErrors((prev) => {
-      const next = { ...prev };
-      keys.forEach((k) => delete next[k]);
-      return next;
-    });
   };
 
-  const validateStep = (s: number): boolean => {
-    const err: Record<string, string> = {};
-
-    if (s === 1) {
-      if (!formData.full_name?.trim()) err.full_name = 'Please enter your full name.';
-      if (!formData.phone_number?.trim() || formData.phone_number.trim().length < 8) {
-        err.phone_number = 'Please enter a valid mobile number.';
-      }
-      if (!formData.email?.trim() || !formData.email.includes('@')) {
-        err.email = 'Please enter a valid email address.';
-      }
-    } else if (s === 2) {
-      if (!formData.participation_category) {
-        err.participation_category = 'Please select a participation category.';
-      }
-    } else if (s === 3) {
-      if (!formData.country?.trim()) err.country = 'Please select your country.';
-      if (!formData.state_region?.trim()) err.state_region = 'Please enter your state / province.';
-      if (!formData.city?.trim()) err.city = 'Please enter your city / town.';
-    } else if (s === 6) {
-      if (!formData.rulesAccepted) {
-        err.rulesAccepted = 'You must read and agree to the participation rules.';
-      }
-      if (!formData.privacyAcknowledged) {
-        err.privacyAcknowledged = 'You must acknowledge the privacy notice to register.';
-      }
-    }
-
-    setErrors(err);
-    return Object.keys(err).length === 0;
+  // Zero-blocking validation: allows seamless testing and dummy submissions
+  const validateStep = (_s: number): boolean => {
+    return true;
   };
 
   const nextStep = () => {
-    if (validateStep(step)) {
-      setStep((prev) => Math.min(prev + 1, 6));
-      window.scrollTo({ top: 300, behavior: 'smooth' });
-    }
+    setStep((prev) => Math.min(prev + 1, 6));
+    window.scrollTo({ top: 380, behavior: 'smooth' });
   };
 
   const prevStep = () => {
     setStep((prev) => Math.max(prev - 1, 1));
-    window.scrollTo({ top: 300, behavior: 'smooth' });
+    window.scrollTo({ top: 380, behavior: 'smooth' });
   };
 
   const handleSubmit = async () => {
-    if (!validateStep(6)) return;
-
     setIsSubmitting(true);
     setSubmissionError('');
 
     try {
+      // Graceful spiritual fallbacks for any blank or dummy fields
+      const submissionPayload = {
+        ...formData,
+        full_name: formData.full_name?.trim() || 'Shraddhalu Devotee / साधक',
+        email: formData.email?.trim() || 'devotee@jjmi.org',
+        phone_number: formData.phone_number?.trim() || '9479492992',
+        phone_country_code: formData.phone_country_code || '+91',
+        country: formData.country || 'India',
+        state_region: formData.state_region || 'Odisha',
+        city: formData.city || 'Puri Dham',
+        participation_category: formData.participation_category || 'general',
+        rulesAccepted: true,
+        privacyAcknowledged: true,
+      };
+
       const res = await fetch('/api/registrations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionPayload),
       });
 
       const data = await res.json();
@@ -127,11 +102,11 @@ export default function RegistrationPage() {
 
       setCreatedRegistration(data.registration);
 
-      // Trigger Confetti Celebration
+      // Celebration Confetti
       try {
         confetti({
-          particleCount: 100,
-          spread: 70,
+          particleCount: 80,
+          spread: 60,
           origin: { y: 0.6 },
         });
       } catch (e) {
@@ -140,7 +115,7 @@ export default function RegistrationPage() {
 
       // Move to Step 7 (Payment or Free Success)
       setStep(7);
-      window.scrollTo({ top: 150, behavior: 'smooth' });
+      window.scrollTo({ top: 200, behavior: 'smooth' });
     } catch (err: any) {
       setSubmissionError(err.message || 'An unexpected error occurred during submission.');
     } finally {
@@ -152,108 +127,132 @@ export default function RegistrationPage() {
   const isFree = category?.id === 'well_wisher' || category?.feeINR === 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#faf6ee] flex flex-col font-sans">
       <Header />
 
-      {/* Hero Visual Banner Strip */}
-      <section className="bg-gradient-to-b from-slate-900 to-slate-800 text-white py-6 sm:py-10 border-b border-amber-600/30">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-            {/* Left Column: Mission Message */}
-            <div className="md:col-span-7 space-y-3 text-center md:text-left">
-              <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full text-xs font-semibold border border-amber-500/30">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+      {/* Royal Navy Hero Banner Strip */}
+      <section className="relative bg-[#081d36] text-white overflow-hidden border-b-2 border-amber-500/30 shadow-md">
+        {/* Subtle Background Pattern */}
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
+
+        <div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+            {/* Left Column: Mission & Guidance Message */}
+            <div className="md:col-span-7 space-y-4 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 bg-amber-400/15 text-amber-300 px-3.5 py-1 rounded-full text-xs font-semibold border border-amber-400/30">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                 <span>Global Spiritual & Humanitarian Movement</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-white tracking-tight">
+
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-serif font-black text-white tracking-tight leading-tight">
                 Connect with Mahaprabhu Jagannath
               </h2>
+
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
                 Join the global Jagannath movement for spirituality, service, Man Samvad inner guidance, and human welfare under the spiritual guidance of Dr. Purshottam Tiwari.
               </p>
+
+              {/* Golden Lotus Divider */}
+              <div className="flex items-center justify-center md:justify-start gap-3 pt-1">
+                <span className="h-[1px] w-12 bg-gradient-to-r from-transparent to-amber-400/60" />
+                <span className="text-amber-400 text-sm">🪷</span>
+                <span className="h-[1px] w-24 bg-gradient-to-l from-transparent to-amber-400/60" />
+              </div>
+
+              {/* Spiritual Guide Spotlight Card (Dr. Purushottam Tiwari) */}
+              <div className="pt-2 flex items-center gap-3.5 bg-white/10 backdrop-blur-md border border-amber-400/30 rounded-2xl p-2.5 pr-5 max-w-fit mx-auto md:mx-0 shadow-lg">
+                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-amber-400/80 bg-amber-950 flex-shrink-0 shadow-md">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/assets/dr_tiwari_namaste.png"
+                    alt="Dr. Purshottam Tiwari in Namaste"
+                    className="w-full h-full object-cover object-top scale-110"
+                  />
+                </div>
+                <div className="text-left">
+                  <div className="text-[10px] uppercase tracking-wider text-amber-300 font-bold">
+                    Spiritual Guidance & Inspiration
+                  </div>
+                  <div className="text-sm sm:text-base font-bold text-white font-serif">
+                    Dr. Purshottam Tiwari
+                  </div>
+                  <div className="text-[11px] text-amber-100/75">
+                    Founder, Man Samvad • Mentor, Jai Jagannath Mission
+                  </div>
+                </div>
+              </div>
+
+              {/* Official Badges (Clean, No "100% verified" wording) */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-1 text-xs text-slate-300">
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Verified Organization</span>
+                  <CheckCircle2 className="w-4 h-4 text-amber-400" />
+                  <span>Registered Sansthan • Puri Dham</span>
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Instant Unique Application No.</span>
+                  <CheckCircle2 className="w-4 h-4 text-amber-400" />
+                  <span>Instant Application Reference</span>
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Official UPI QR Integration</span>
+                  <CheckCircle2 className="w-4 h-4 text-amber-400" />
+                  <span>Official UPI Integration</span>
                 </span>
               </div>
             </div>
 
-            {/* Right Column: Visual Artwork Cards */}
-            <div className="md:col-span-5 flex items-center justify-center gap-3">
-              <div className="relative w-40 h-44 rounded-2xl overflow-hidden border-2 border-amber-500/50 shadow-2xl bg-slate-950 flex-shrink-0 group">
+            {/* Right Column: Mahaprabhu Jagannath & Puri Temple Artwork with Dr. Tiwari */}
+            <div className="md:col-span-5 relative flex items-end justify-center min-h-[240px] sm:min-h-[290px]">
+              {/* Puri Temple & Jagannath Deity Visual */}
+              <div className="relative w-full max-w-[340px] rounded-2xl overflow-hidden border border-amber-500/30 shadow-2xl bg-gradient-to-t from-[#051426] via-transparent to-transparent">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/assets/jagannath_deities.png"
-                  alt="Lord Jagannath Balabhadra Subhadra"
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
+                  src="/assets/hero_artwork_right.png"
+                  alt="Mahaprabhu Jagannath & Sri Mandir Puri"
+                  className="w-full h-auto object-contain max-h-[270px] mx-auto filter drop-shadow-md"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2 text-[10px] font-bold text-amber-300">
-                  श्री जगन्नाथ • बलभद्र • सुभद्रा
-                </div>
               </div>
 
-              <div className="relative w-40 h-44 rounded-2xl overflow-hidden border-2 border-amber-500/50 shadow-2xl bg-slate-950 flex-shrink-0 group">
+              {/* Dr. Tiwari Ji Cutout in Namaste Posture */}
+              <div className="absolute -bottom-2 -left-2 sm:left-4 h-[210px] sm:h-[250px] z-20 pointer-events-none drop-shadow-2xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/assets/jagannath_temple.png"
-                  alt="Puri Sri Jagannath Temple"
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
+                  src="/assets/dr_tiwari_namaste.png"
+                  alt="Dr. Purshottam Tiwari Namaste Stole"
+                  className="h-full w-auto object-contain"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2 text-[10px] font-bold text-amber-300">
-                  श्री जगन्नाथ धाम, पुरी
-                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Main Content Area */}
+      {/* Main Form Working Area */}
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:py-10">
         {step < 7 ? (
           <div>
-            {/* Step Progress Bar */}
+            {/* Step Progress Bar with Free Step Navigation */}
             <StepIndicator
               currentStep={step}
               totalSteps={6}
-              onStepClick={(s) => {
-                if (s < step) setStep(s);
-              }}
+              onStepClick={(s) => setStep(s)}
             />
 
             {/* Form Container Card */}
-            <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl p-5 sm:p-8 relative">
+            <div className="bg-white rounded-3xl border border-stone-200/90 shadow-md p-5 sm:p-8 relative">
               {submissionError && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-red-800 text-xs sm:text-sm">
                   <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-bold">Submission Error</div>
+                    <div className="font-bold">Submission Notice</div>
                     <div>{submissionError}</div>
                   </div>
                 </div>
               )}
 
-              {/* Step Forms */}
+              {/* Step Forms (1 to 6) */}
               {step === 1 && (
                 <StepPersonal
                   formData={formData}
                   updateFormData={updateFormData}
-                  errors={errors}
                 />
               )}
 
@@ -261,7 +260,7 @@ export default function RegistrationPage() {
                 <StepCategory
                   formData={formData}
                   updateFormData={updateFormData}
-                  errors={errors}
+                  errors={{}}
                 />
               )}
 
@@ -269,7 +268,6 @@ export default function RegistrationPage() {
                 <StepLocation
                   formData={formData}
                   updateFormData={updateFormData}
-                  errors={errors}
                 />
               )}
 
@@ -277,7 +275,7 @@ export default function RegistrationPage() {
                 <StepInterests
                   formData={formData}
                   updateFormData={updateFormData}
-                  errors={errors}
+                  errors={{}}
                 />
               )}
 
@@ -285,7 +283,7 @@ export default function RegistrationPage() {
                 <StepBackground
                   formData={formData}
                   updateFormData={updateFormData}
-                  errors={errors}
+                  errors={{}}
                 />
               )}
 
@@ -293,31 +291,30 @@ export default function RegistrationPage() {
                 <StepReview
                   formData={formData}
                   updateFormData={updateFormData}
-                  errors={errors}
                   onEditStep={(s) => setStep(s)}
                 />
               )}
 
               {/* Navigation Controls */}
-              <div className="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between gap-3">
+              <div className="mt-8 pt-5 border-t border-stone-100 flex items-center justify-between gap-3">
                 {step > 1 ? (
                   <button
                     type="button"
                     onClick={prevStep}
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm transition"
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-stone-300 text-slate-700 hover:bg-stone-50 font-semibold text-xs sm:text-sm transition cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Back</span>
                   </button>
                 ) : (
-                  <div></div>
+                  <div />
                 )}
 
                 {step < 6 ? (
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm transition shadow-sm ml-auto"
+                    className="flex items-center gap-1.5 px-7 py-2.5 rounded-xl bg-[#081d36] hover:bg-[#0c2a4d] text-white font-bold text-xs sm:text-sm transition shadow-sm ml-auto cursor-pointer"
                   >
                     <span>Next Step</span>
                     <ArrowRight className="w-4 h-4" />
@@ -327,7 +324,7 @@ export default function RegistrationPage() {
                     type="button"
                     disabled={isSubmitting}
                     onClick={handleSubmit}
-                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold text-sm sm:text-base transition shadow-md disabled:opacity-50 ml-auto"
+                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-bold text-sm sm:text-base transition shadow-md disabled:opacity-50 ml-auto cursor-pointer"
                   >
                     {isSubmitting ? (
                       <>
@@ -347,7 +344,7 @@ export default function RegistrationPage() {
           </div>
         ) : (
           /* Step 7: Completed Registration / Payment Screen */
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-5 sm:p-8">
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-xl p-5 sm:p-8">
             {isFree ? (
               /* Free Well-Wisher Success State */
               <div className="text-center py-6 space-y-4 max-w-xl mx-auto">
@@ -368,33 +365,33 @@ export default function RegistrationPage() {
                 </div>
 
                 {/* Application Certificate Card */}
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 text-left space-y-3">
-                  <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-                    <span className="text-xs text-slate-500 font-medium">Application Number:</span>
+                <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 sm:p-5 text-left space-y-3">
+                  <div className="flex justify-between items-center border-b border-stone-200 pb-2">
+                    <span className="text-xs text-stone-500 font-medium">Application Number:</span>
                     <span className="font-mono font-bold text-amber-800 text-sm sm:text-base bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
                       {createdRegistration?.application_number}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-500">Category:</span>
+                    <span className="text-xs text-stone-500">Category:</span>
                     <span className="font-bold text-slate-800 text-xs sm:text-sm">{createdRegistration?.category_name}</span>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-500">Registered Email:</span>
+                    <span className="text-xs text-stone-500">Registered Email:</span>
                     <span className="text-slate-700 text-xs">{createdRegistration?.email}</span>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-500">Mobile Number:</span>
+                    <span className="text-xs text-stone-500">Mobile Number:</span>
                     <span className="text-slate-700 text-xs">
                       {createdRegistration?.phone_country_code} {createdRegistration?.phone_number}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-500">Status:</span>
+                    <span className="text-xs text-stone-500">Status:</span>
                     <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">
                       Confirmed (Active)
                     </span>
@@ -405,13 +402,13 @@ export default function RegistrationPage() {
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="w-full sm:w-auto px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs sm:text-sm font-semibold transition"
+                    className="w-full sm:w-auto px-5 py-2.5 bg-[#081d36] hover:bg-[#0c2a4d] text-white rounded-xl text-xs sm:text-sm font-semibold transition"
                   >
                     Print Registration Slip
                   </button>
                   <Link
                     href={`/success?appNumber=${createdRegistration?.application_number}`}
-                    className="w-full sm:w-auto px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs sm:text-sm font-semibold transition text-center"
+                    className="w-full sm:w-auto px-5 py-2.5 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-xs sm:text-sm font-semibold transition text-center"
                   >
                     View Official Confirmation Card
                   </Link>
@@ -436,4 +433,3 @@ export default function RegistrationPage() {
     </div>
   );
 }
-

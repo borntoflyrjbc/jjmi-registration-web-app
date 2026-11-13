@@ -81,7 +81,7 @@ export const PaymentPanel: React.FC<PaymentPanelProps> = ({ registration, onPaym
           Complete Your Registration
         </h2>
         <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-lg mx-auto">
-          Scan the verified UPI QR code below with Google Pay, PhonePe, Paytm or any banking app to complete your contribution.
+          Scan the official UPI QR code below with Google Pay, PhonePe, Paytm or any banking app to complete your contribution.
         </p>
       </div>
 
@@ -164,7 +164,7 @@ export const PaymentPanel: React.FC<PaymentPanelProps> = ({ registration, onPaym
 
             <div className="text-xs text-slate-500 mt-3 flex items-center justify-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Verified NPCI UPI • Purushottam Tiwari</span>
+              <span>Official Beneficiary: Purushottam Tiwari (HDFC Bank)</span>
             </div>
           </div>
 
