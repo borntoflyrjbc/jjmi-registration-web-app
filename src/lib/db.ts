@@ -3,7 +3,10 @@ import path from 'path';
 import fs from 'fs';
 import { RegistrationRecord, AdminStats } from './types';
 
-const dataDir = path.join(process.cwd(), 'data');
+const dataDir = process.env.VERCEL
+  ? path.join('/tmp', 'jjmi_data')
+  : path.join(process.cwd(), 'data');
+
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
