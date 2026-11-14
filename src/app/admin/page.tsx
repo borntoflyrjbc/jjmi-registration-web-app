@@ -143,7 +143,7 @@ export default function AdminDashboardPage() {
         </div>
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
           <a
-            href="https://docs.google.com/spreadsheets/d/1J0SarYkXukFWbzoCrIMeJDviYCdvZ7-GOeI0t4KMZQo/edit"
+            href="https://docs.google.com/spreadsheets/d/1bZ_RrC_f6pol6Pre_SJmyOwAYUEAM61koM9YkOBYkpI/edit"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded-lg shadow-sm transition"
