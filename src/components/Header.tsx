@@ -34,9 +34,9 @@ export const Header: React.FC = () => {
 
       {/* 2. Main Royal Header with Ivory Parchment */}
       <div className="py-5 px-4 sm:px-6 max-w-7xl mx-auto relative">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-5">
           {/* Left Decorative Balancing Spacer / Watermark */}
-          <div className="hidden lg:flex items-center gap-2 w-52 opacity-20 pointer-events-none">
+          <div className="hidden lg:flex items-center gap-2 w-52 opacity-25 pointer-events-none">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/assets/temple_sketch_watermark.png"
@@ -95,26 +95,28 @@ export const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* Right: Spiritual Guide Card (Dr. Purushottam Tiwari Flipped) */}
-          <div className="flex items-center gap-3 bg-white/95 border border-amber-300/80 rounded-2xl p-2 sm:p-2.5 pr-4 shadow-sm hover:shadow-md transition flex-shrink-0">
-            <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-full overflow-hidden border-2 border-[#d4af37] bg-amber-950 flex-shrink-0 shadow-inner">
+          {/* Right: Full Transparent PNG of Dr. Purushottam Tiwari with Exact Hindi Name & Title */}
+          <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xs border border-amber-300/80 rounded-2xl p-2 px-3.5 sm:px-4 shadow-sm hover:shadow-md transition flex-shrink-0 max-w-full sm:max-w-xs lg:max-w-sm">
+            {/* Full transparent cutout image */}
+            <div className="h-16 sm:h-20 lg:h-22 w-auto flex-shrink-0 flex items-end">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/assets/dr_tiwari_flipped.png"
-                alt="Dr. Purshottam Tiwari in Namaste"
-                className="w-full h-full object-cover object-top scale-110"
+                alt="डॉ. पुरुषोत्तम तिवारी"
+                className="h-full w-auto object-contain filter drop-shadow-sm"
               />
             </div>
-            <div className="text-left">
-              <span className="text-[10px] uppercase tracking-wider text-amber-800 font-bold block">
-                Spiritual Guide & Mentor
-              </span>
-              <span className="text-xs sm:text-sm font-bold text-[#0f284e] font-serif block leading-tight">
-                Dr. Purshottam Tiwari
-              </span>
-              <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium block">
-                Founder, Man Samvad
-              </span>
+            {/* Exact Hindi text requested by User */}
+            <div className="text-left leading-tight">
+              <div className="text-xs sm:text-sm lg:text-base font-bold text-[#0f284e] font-serif tracking-tight">
+                डॉ. पुरुषोत्तम तिवारी
+              </div>
+              <div className="text-[10px] sm:text-[11px] font-semibold text-amber-800 mt-0.5">
+                आध्यात्मिक मार्गदर्शक संस्थापक
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-stone-600 font-medium">
+                जय जगन्नाथ मिशन अन्तर्राष्ट्रीय
+              </div>
             </div>
           </div>
         </div>

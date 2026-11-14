@@ -112,6 +112,8 @@ export async function POST(req: NextRequest) {
           category_name: record.category_name,
           feeINR: categoryConfig.feeINR,
           feeBasis: categoryConfig.feeBasis,
+          fee_amount_minor: feeAmountMinor,
+          fee_basis: feeBasis,
           isFree,
           registration_status: record.registration_status,
           payment_status: record.payment_status,

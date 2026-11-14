@@ -93,6 +93,8 @@ export function getCategoryById(id: string): ParticipationCategory | undefined {
   return PARTICIPATION_CATEGORIES.find((c) => c.id === id);
 }
 
+export const MISSION_WHATSAPP_NUMBER = '919479492992';
+
 export const UPI_CONFIG = {
   vpa: '9479492992@pthdfc',
   payeeName: 'PURUSHOTTAM TIWARI',

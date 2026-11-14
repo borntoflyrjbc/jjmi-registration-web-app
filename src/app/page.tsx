@@ -130,15 +130,27 @@ export default function RegistrationPage() {
     <div className="min-h-screen bg-[#faf6ee] flex flex-col font-sans">
       <Header />
 
-      {/* Royal Navy Hero Banner Strip */}
+      {/* Royal Navy Hero Banner Strip - Big Edge-to-Edge Artwork */}
       <section className="relative bg-[#081d36] text-white overflow-hidden border-b-2 border-amber-500/30 shadow-md">
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
 
-        <div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+        {/* Desktop Edge-to-Edge Artwork Container (Fills Right Half from top to bottom) */}
+        <div className="hidden md:block absolute right-0 top-0 bottom-0 w-[50%] lg:w-[52%] h-full overflow-hidden z-0">
+          {/* Smooth left-edge fade into navy background */}
+          <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#081d36] via-[#081d36]/60 to-transparent z-10 pointer-events-none" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/assets/hero_banner_jagannath_edge_to_edge.png"
+            alt="Mahaprabhu Jagannath & Puri Sri Mandir"
+            className="w-full h-full object-cover object-center filter drop-shadow-2xl"
+          />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+          <div className="flex flex-col md:flex-row items-center justify-between min-h-[300px] sm:min-h-[340px] md:min-h-[360px]">
             {/* Left Column: Mission & Divine Connection */}
-            <div className="md:col-span-6 space-y-4 text-center md:text-left">
+            <div className="w-full md:w-[48%] lg:w-[46%] py-8 sm:py-10 space-y-4 text-center md:text-left">
               <div className="inline-flex items-center gap-2 bg-amber-400/15 text-amber-300 px-3.5 py-1 rounded-full text-xs font-semibold border border-amber-400/30">
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                 <span>Global Spiritual & Humanitarian Movement</span>
@@ -148,7 +160,7 @@ export default function RegistrationPage() {
                 Connect with Mahaprabhu Jagannath
               </h2>
 
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl mx-auto md:mx-0">
                 Join the global Jagannath movement for spirituality, service, Man Samvad inner guidance, and human welfare under the spiritual guidance of Dr. Purshottam Tiwari.
               </p>
 
@@ -160,16 +172,14 @@ export default function RegistrationPage() {
               </div>
             </div>
 
-            {/* Right Column: Full Mahaprabhu Jagannath & Puri Temple Artwork */}
-            <div className="md:col-span-6 relative flex items-center justify-center md:justify-end">
-              <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-amber-500/30 bg-[#081d36]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/assets/hero_artwork_full_jagannath_2x.png"
-                  alt="Mahaprabhu Jagannath & Puri Sri Mandir"
-                  className="w-full h-auto object-cover max-h-[290px] filter drop-shadow-lg"
-                />
-              </div>
+            {/* Mobile Edge-to-Edge Artwork (Full Width below text) */}
+            <div className="md:hidden w-full -mx-4 w-[calc(100%+2rem)] h-52 sm:h-64 overflow-hidden relative border-t border-amber-500/20">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/hero_banner_jagannath_edge_to_edge.png"
+                alt="Mahaprabhu Jagannath & Puri Sri Mandir"
+                className="w-full h-full object-cover object-center"
+              />
             </div>
           </div>
         </div>

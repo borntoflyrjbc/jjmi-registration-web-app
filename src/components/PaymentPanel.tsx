@@ -1,6 +1,11 @@
+'use client';
+
 import React, { useState } from 'react';
-import { UPI_CONFIG } from '@/lib/categories';
-import { QrCode, Download, ExternalLink, CheckCircle2, ShieldCheck, Copy, ArrowRight, AlertCircle, RefreshCw, Eye } from 'lucide-react';
+import { UPI_CONFIG, MISSION_WHATSAPP_NUMBER } from '@/lib/categories';
+import { 
+  QrCode, Download, ExternalLink, CheckCircle2, ShieldCheck, 
+  Copy, ArrowRight, AlertCircle, RefreshCw, Eye, MessageCircle 
+} from 'lucide-react';
 
 interface PaymentPanelProps {
   registration: any;
@@ -15,17 +20,42 @@ export const PaymentPanel: React.FC<PaymentPanelProps> = ({ registration, onPaym
   const [copiedVpa, setCopiedVpa] = useState(false);
   const [showOriginalCard, setShowOriginalCard] = useState(false);
 
-  const amountINR = (registration.fee_amount_minor / 100).toFixed(0);
+  const feeNumber = registration.feeINR !== undefined 
+    ? registration.feeINR 
+    : (registration.fee_amount_minor ? registration.fee_amount_minor / 100 : 500);
+  const amountINR = String(feeNumber);
+  const feeBasis = registration.feeBasis || registration.fee_basis || 'Annual';
   const appNumber = registration.application_number;
+  const applicantName = registration.full_name || 'Participant';
+  const categoryName = registration.category_name || 'General Participant';
 
   // NPCI Standard UPI Link
   const upiIntentUrl = `upi://pay?pa=${encodeURIComponent(UPI_CONFIG.vpa)}&pn=${encodeURIComponent(
     UPI_CONFIG.payeeName
   )}&am=${encodeURIComponent(amountINR)}&cu=INR&tn=${encodeURIComponent(appNumber)}`;
 
-  // Dynamic QR Code Endpoint
+  // Dynamic QR Code Endpoints
   const qrImageUrl = `/api/qr?amount=${amountINR}&appNumber=${encodeURIComponent(appNumber)}`;
   const qrDownloadUrl = `/api/qr?amount=${amountINR}&appNumber=${encodeURIComponent(appNumber)}&download=1`;
+
+  // WhatsApp Pre-filled Confirmation Message per Guidelines
+  const buildWhatsAppMessage = () => {
+    const lines = [
+      'Hello Jai Jagannath Mission International Team,',
+      '',
+      'I have completed the payment for my participant application. Kindly verify the payment and confirm my registration.',
+      '',
+      `Application Number: ${appNumber}`,
+      `Name: ${applicantName}`,
+      `Participation Category: ${categoryName}`,
+      `Amount Paid: ₹${Number(amountINR).toLocaleString('en-IN')} INR`,
+      utrNumber.trim() ? `Payment Reference / UTR: ${utrNumber.trim()}` : null,
+    ].filter(Boolean);
+
+    return lines.join('\n');
+  };
+
+  const whatsappUrl = `https://wa.me/${MISSION_WHATSAPP_NUMBER}?text=${encodeURIComponent(buildWhatsAppMessage())}`;
 
   const copyVpa = () => {
     navigator.clipboard.writeText(UPI_CONFIG.vpa);
@@ -35,8 +65,8 @@ export const PaymentPanel: React.FC<PaymentPanelProps> = ({ registration, onPaym
 
   const handleVerifySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!utrNumber.trim() || utrNumber.trim().length < 6) {
-      setErrorMsg('Please enter a valid 12-digit UPI UTR or Transaction ID.');
+    if (!utrNumber.trim() || utrNumber.trim().length < 4) {
+      setErrorMsg('Please enter a valid UPI UTR or Transaction Reference number.');
       return;
     }
 
@@ -72,220 +102,235 @@ export const PaymentPanel: React.FC<PaymentPanelProps> = ({ registration, onPaym
 
   return (
     <div className="space-y-6">
-      {/* Top Banner */}
-      <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 text-center">
-        <span className="inline-block bg-amber-600 text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2">
-          Step 7: Payment & Verification
+      {/* 1. Header Banner */}
+      <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 sm:p-5 text-center">
+        <span className="inline-block bg-[#081d36] text-amber-300 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 border border-amber-500/30">
+          Payment & Verification
         </span>
-        <h2 className="text-xl sm:text-2xl font-bold font-serif text-slate-900">
-          Complete Your Registration
+        <h2 className="text-xl sm:text-2xl font-bold font-serif text-[#081d36]">
+          Complete Your Payment
         </h2>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-lg mx-auto">
-          Scan the official UPI QR code below with Google Pay, PhonePe, Paytm or any banking app to complete your contribution.
+        <p className="text-xs sm:text-sm text-stone-600 mt-1 max-w-lg mx-auto">
+          Scan the official UPI QR code below with Google Pay, PhonePe, Paytm, BHIM, or any banking app to complete your contribution.
         </p>
       </div>
 
-      {/* Payment Summary Box */}
-      <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-lg border border-slate-800">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-4">
-          <div>
-            <div className="text-xs text-amber-400 font-semibold uppercase tracking-wider">Application Reference</div>
+      {/* 2. Order Summary Card */}
+      <div className="bg-[#081d36] text-white rounded-2xl p-4 sm:p-5 shadow-md border border-amber-500/20">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div className="text-center sm:text-left">
+            <div className="text-[11px] text-amber-300 font-semibold uppercase tracking-wider">Application Reference</div>
             <div className="text-lg sm:text-xl font-mono font-bold text-white tracking-wider mt-0.5">
               {appNumber}
             </div>
-            <div className="text-xs text-slate-400 mt-0.5">
-              Applicant: <span className="text-slate-200 font-medium">{registration.full_name}</span> ({registration.category_name})
+            <div className="text-xs text-slate-300 mt-0.5">
+              Applicant: <span className="text-white font-medium">{applicantName}</span> ({categoryName})
             </div>
           </div>
 
           <div className="text-center sm:text-right">
-            <div className="text-xs text-slate-400">Total Payable Amount</div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-amber-400">
+            <div className="text-[11px] text-slate-300 uppercase tracking-wider">Total Payable Amount</div>
+            <div className="text-2xl sm:text-3xl font-extrabold text-amber-400 font-serif">
               ₹{Number(amountINR).toLocaleString('en-IN')}
             </div>
-            <div className="text-xs text-slate-400">{registration.fee_basis} Contribution</div>
+            <div className="text-xs text-amber-200/80">{feeBasis} Contribution</div>
           </div>
         </div>
 
-        {/* Mobile Fast UPI Intent Button */}
-        <div className="mt-4 pt-1 sm:hidden">
+        {/* Mobile Fast Pay Button */}
+        <div className="mt-3.5 sm:hidden">
           <a
             href={upiIntentUrl}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition"
+            className="w-full min-h-[44px] flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition"
           >
             <QrCode className="w-5 h-5" />
             <span>Pay ₹{amountINR} via Any UPI App</span>
             <ArrowRight className="w-4 h-4 ml-1" />
           </a>
-          <p className="text-[11px] text-center text-slate-400 mt-2">
-            Opens Google Pay, PhonePe, Paytm, or BHIM directly on your mobile.
-          </p>
         </div>
       </div>
 
-      {/* QR Code & Payee Details Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Left: Dynamic QR Code Container */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm text-center flex flex-col items-center justify-between">
-          <div className="w-full">
-            <div className="flex items-center justify-between w-full mb-3">
-              <span className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
-                <QrCode className="w-4 h-4 text-amber-600" />
-                <span>Official UPI QR</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowOriginalCard(!showOriginalCard)}
-                className="text-xs text-amber-700 hover:underline flex items-center gap-1 font-medium"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                <span>{showOriginalCard ? 'Show Dynamic QR' : 'View Tiwari Ji Original QR'}</span>
-              </button>
-            </div>
-
-            {/* QR Card Frame */}
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl inline-block shadow-inner mx-auto">
-              {showOriginalCard ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src="/assets/tiwari_ji_upi_qr.jpg"
-                  alt="Dr. Purshottam Tiwari Official UPI QR"
-                  className="w-56 h-auto max-h-64 object-contain rounded-lg mx-auto"
-                />
-              ) : (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={qrImageUrl}
-                  alt={`UPI QR for ${appNumber}`}
-                  className="w-56 h-56 object-contain rounded-lg mx-auto"
-                />
-              )}
-            </div>
-
-            <div className="text-xs text-slate-500 mt-3 flex items-center justify-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Official Beneficiary: Purushottam Tiwari (HDFC Bank)</span>
-            </div>
+      {/* 3. Main Payment Grid (QR Code + Official Details & WhatsApp Action) */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+        {/* Left Column: QR Code Container */}
+        <div className="md:col-span-5 bg-white border border-stone-200/90 rounded-2xl p-5 shadow-xs text-center flex flex-col items-center">
+          <div className="flex items-center justify-between w-full border-b border-stone-100 pb-2 mb-3 text-xs">
+            <span className="font-bold text-[#081d36] flex items-center gap-1.5">
+              <QrCode className="w-4 h-4 text-amber-700" />
+              <span>Scan QR to Pay</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowOriginalCard(!showOriginalCard)}
+              className="text-amber-800 hover:underline flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>{showOriginalCard ? 'Show QR Code' : 'View Bank Standee'}</span>
+            </button>
           </div>
 
-          {/* Action Buttons */}
-          <div className="w-full mt-4 pt-3 border-t border-slate-100 flex gap-2">
+          {/* Genuine QR Box with Scanning Indicator */}
+          <div className="relative p-2.5 bg-white border-2 border-stone-200 rounded-2xl shadow-inner group overflow-hidden">
+            {showOriginalCard ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src="/assets/purushottam_tiwari_official_qr.jpg"
+                alt="Official HDFC Bank Standee QR"
+                className="w-56 h-auto max-h-72 object-contain rounded-lg mx-auto"
+              />
+            ) : (
+              <div className="relative w-52 h-52 sm:w-56 sm:h-56 mx-auto">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={qrImageUrl}
+                  alt={`Payment QR Code for Application ${appNumber}`}
+                  className="w-full h-full object-contain rounded-lg"
+                />
+                {/* Restrained Scanner Line Animation */}
+                <div 
+                  className="absolute inset-x-0 h-[2px] bg-amber-500/80 shadow-[0_0_8px_rgba(245,158,11,0.8)] pointer-events-none animate-[scanline_2.8s_ease-in-out_infinite]"
+                  style={{ top: '15%' }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Instruction Helper Text */}
+          <p className="text-xs text-stone-500 mt-2.5 leading-relaxed">
+            Open your UPI app and scan this QR code to complete your payment.
+          </p>
+
+          {/* Download QR Button (Exact file per prompt guidelines) */}
+          <div className="w-full mt-3 pt-3 border-t border-stone-100 flex flex-col gap-1.5">
             <a
               href={qrDownloadUrl}
-              download={`${appNumber}-Payment-QR.png`}
-              className="flex-1 flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold py-2.5 px-3 rounded-xl transition"
+              download={`JJMI-Payment-${appNumber}.png`}
+              className="min-h-[44px] w-full flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 text-slate-800 text-xs font-semibold py-2.5 px-3 rounded-xl transition border border-stone-200 cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5 text-slate-600" />
+              <Download className="w-4 h-4 text-stone-600" />
               <span>Download QR</span>
             </a>
-            <a
-              href={upiIntentUrl}
-              className="hidden sm:flex flex-1 items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold py-2.5 px-3 rounded-xl transition shadow-sm"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>Open UPI App</span>
-            </a>
+            <p className="text-[10px] text-stone-400">
+              After downloading, find the QR in your Downloads folder or save it to your Gallery.
+            </p>
           </div>
         </div>
 
-        {/* Right: Verified Account Details & UTR Form */}
-        <div className="space-y-4">
+        {/* Right Column: Beneficiary Details + WhatsApp Confirmation + UTR Submit */}
+        <div className="md:col-span-7 space-y-4">
           {/* Beneficiary Details Card */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs space-y-2.5">
-            <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5 border-b border-slate-200 pb-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Beneficiary Account Information</span>
+          <div className="bg-stone-50 border border-stone-200/90 rounded-2xl p-4 text-xs space-y-2.5">
+            <div className="font-bold text-[#081d36] text-sm flex items-center justify-between border-b border-stone-200 pb-2">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span>Official Beneficiary Information</span>
+              </span>
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
+                HDFC Bank
+              </span>
             </div>
 
-            <div className="flex justify-between items-center">
-              <span className="text-slate-500">Payee Name:</span>
-              <span className="font-bold text-slate-800">{UPI_CONFIG.payeeName}</span>
+            <div className="flex justify-between items-center py-1">
+              <span className="text-stone-500 font-medium">Beneficiary Name:</span>
+              <span className="font-bold text-slate-900">{UPI_CONFIG.payeeName}</span>
             </div>
 
-            <div className="flex justify-between items-center">
-              <span className="text-slate-500">UPI ID / VPA:</span>
-              <div className="flex items-center gap-1.5">
-                <span className="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-300">
+            <div className="flex justify-between items-center py-1 bg-white p-2.5 rounded-xl border border-stone-200">
+              <div>
+                <span className="text-stone-400 block text-[10px] uppercase font-bold">Official UPI ID / VPA</span>
+                <span className="font-mono font-bold text-[#081d36] text-xs sm:text-sm select-all">
                   {UPI_CONFIG.vpa}
                 </span>
-                <button
-                  type="button"
-                  onClick={copyVpa}
-                  className="p-1 text-slate-600 hover:text-amber-700 hover:bg-amber-100 rounded transition"
-                  title="Copy UPI ID"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                </button>
               </div>
+              <button
+                type="button"
+                onClick={copyVpa}
+                className="flex items-center gap-1 text-[11px] bg-amber-50 hover:bg-amber-100 text-amber-800 px-3 py-1.5 rounded-lg border border-amber-200 font-semibold transition cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>{copiedVpa ? 'Copied!' : 'Copy UPI'}</span>
+              </button>
             </div>
-            {copiedVpa && <div className="text-right text-[11px] text-emerald-600 font-semibold">UPI ID Copied!</div>}
 
-            <div className="flex justify-between items-center">
-              <span className="text-slate-500">Mission Bank:</span>
-              <span className="font-medium text-slate-700">{UPI_CONFIG.bankName}</span>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-slate-500">Helpline / Support:</span>
-              <span className="font-medium text-slate-700">{UPI_CONFIG.helplinePhone}</span>
+            <div className="flex justify-between items-center py-1">
+              <span className="text-stone-500 font-medium">Mission Contact:</span>
+              <a href="tel:+919479492992" className="font-semibold text-amber-800 hover:underline">
+                {UPI_CONFIG.helplinePhone}
+              </a>
             </div>
           </div>
 
-          {/* Step 2: Post-Payment Reference Submission Form */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-            <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-amber-600" />
-              <span>Confirm Your Payment • भुगतान पुष्टि</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              After paying via UPI, enter your 12-digit UPI Reference Number / UTR below to confirm your registration.
+          {/* Prominent WhatsApp Confirmation Button per Add-on Prompt */}
+          <div className="bg-emerald-50/70 border-2 border-emerald-500/40 rounded-2xl p-4 text-center space-y-2">
+            <div className="text-xs font-bold text-emerald-900">
+              Instant Payment Confirmation via WhatsApp
+            </div>
+            
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="min-h-[48px] w-full flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3 px-5 rounded-xl shadow-md transition text-sm sm:text-base cursor-pointer"
+            >
+              <MessageCircle className="w-5 h-5 fill-white" />
+              <span>Payment Done? Confirm on WhatsApp</span>
+            </a>
+
+            <p className="text-[11px] text-emerald-800 leading-tight">
+              After completing your payment, tap here to send your confirmation to our team.
             </p>
+            <p className="text-[10px] text-stone-500 italic">
+              Note: Payment verification will be completed separately by the Mission office.
+            </p>
+          </div>
+
+          {/* Optional UTR / Reference Submission Form */}
+          <div className="bg-white border border-stone-200/90 rounded-2xl p-4">
+            <h4 className="text-xs font-bold text-[#081d36] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <span>Submit 12-Digit UPI Ref / UTR (Optional)</span>
+            </h4>
 
             {submitSuccess ? (
-              <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
-                <div className="font-bold flex items-center gap-1.5 text-emerald-900">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Payment Reference Submitted!</span>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-800 flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-bold">UTR Reference Submitted!</div>
+                  <div className="text-[11px]">
+                    Your reference <span className="font-mono font-bold">{utrNumber}</span> is recorded. Our team will verify and update your status.
+                  </div>
                 </div>
-                <p className="mt-1">
-                  Thank you! Your reference is under verification by Jai Jagannath Mission team. You can check status anytime with your application number.
-                </p>
               </div>
             ) : (
-              <form onSubmit={handleVerifySubmit} className="mt-3 space-y-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    UPI Reference / UTR Number (12 Digits) <span className="text-red-500">*</span>
-                  </label>
+              <form onSubmit={handleVerifySubmit} className="space-y-2">
+                <div className="flex gap-2">
                   <input
                     type="text"
-                    required
-                    maxLength={30}
-                    placeholder="e.g. 431289562104"
+                    placeholder="Enter 12-digit UTR (e.g. 947949299201)"
                     value={utrNumber}
-                    onChange={(e) => setUtrNumber(e.target.value.replace(/[^0-9a-zA-Z]/g, ''))}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200"
+                    onChange={(e) => {
+                      setUtrNumber(e.target.value);
+                      if (errorMsg) setErrorMsg('');
+                    }}
+                    className="flex-1 px-3 py-2 text-xs sm:text-sm bg-stone-50 border border-stone-300 rounded-xl font-mono focus:bg-white focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-500"
                   />
-                  {errorMsg && <p className="text-red-600 text-xs mt-1 font-semibold">{errorMsg}</p>}
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="min-h-[40px] px-4 py-2 bg-[#081d36] hover:bg-[#0c2a4d] text-white text-xs font-bold rounded-xl transition shadow-xs disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                  >
+                    {isSubmitting ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <span>Submit UTR</span>
+                    )}
+                  </button>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition shadow-sm disabled:opacity-50"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Verifying Reference...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                      <span>Submit Payment Reference</span>
-                    </>
-                  )}
-                </button>
+                {errorMsg && (
+                  <p className="text-red-600 text-[11px] font-medium flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>{errorMsg}</span>
+                  </p>
+                )}
               </form>
             )}
           </div>
@@ -294,4 +339,3 @@ export const PaymentPanel: React.FC<PaymentPanelProps> = ({ registration, onPaym
     </div>
   );
 };
-
