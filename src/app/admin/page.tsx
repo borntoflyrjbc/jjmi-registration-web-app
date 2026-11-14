@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Users, CheckCircle2, Clock, AlertCircle, 
-  Download, RefreshCw, LogOut, Search, Filter
+  Download, RefreshCw, LogOut, Search, Filter, ExternalLink
 } from 'lucide-react';
 
 interface Registration {
@@ -84,8 +84,10 @@ export default function AdminDashboardPage() {
   async function handleRetrySheets() {
     setSyncing(true);
     try {
-      await fetch('/api/admin/sheets/retry', { method: 'POST' });
-      alert('Google Sheets sync process completed.');
+      const res = await fetch('/api/admin/sheets/retry', { method: 'POST' });
+      const data = await res.json();
+      alert(data.message || 'Google Sheets sync process completed.');
+      fetchData();
     } catch (err) {
       alert('Sync failed.');
     } finally {
@@ -123,6 +125,15 @@ export default function AdminDashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <a
+            href="https://docs.google.com/spreadsheets/d/1J0SarYkXukFWbzoCrIMeJDviYCdvZ7-GOeI0t4KMZQo/edit"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded-lg shadow-sm transition"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Open Google Sheet
+          </a>
           <button
             onClick={handleRetrySheets}
             disabled={syncing}
