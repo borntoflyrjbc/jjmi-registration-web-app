@@ -104,15 +104,11 @@ export async function POST(req: NextRequest) {
       google_sheet_sync_status: 'pending',
     });
 
-    // Permanent Cloud Database Sync (Never loses old/new records on Vercel deployments)
-    saveCloudRegistration(record).catch((cloudErr) => {
-      console.error('[CloudStore Sync Error]:', cloudErr);
-    });
-
-    // Real-Time Google Sheet & Google Form Auto-Sync Pipe
-    submitRegistrationToGooglePipe(record).catch((syncErr) => {
-      console.error('[GooglePipeSync Error]:', syncErr);
-    });
+    // Parallel write to Permanent Cloud Database and Google Sheet before returning response
+    await Promise.allSettled([
+      saveCloudRegistration(record),
+      submitRegistrationToGooglePipe(record),
+    ]);
 
     return NextResponse.json(
       {
