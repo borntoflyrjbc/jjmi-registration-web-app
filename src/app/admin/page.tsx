@@ -57,7 +57,7 @@ export default function AdminDashboardPage() {
       const regRes = await fetch(`/api/admin/registrations${query}`);
       if (regRes.ok) {
         const regData = await regRes.json();
-        setRegistrations(regData.registrations || []);
+        setRegistrations(regData.registrations || regData.records || []);
       }
     } catch (err) {
       console.error(err);

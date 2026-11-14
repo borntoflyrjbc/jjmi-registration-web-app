@@ -102,6 +102,32 @@ export async function POST(req: NextRequest) {
       google_sheet_sync_status: 'pending',
     });
 
+    // Real-Time Google Sheet Auto-Fetch / Auto-Sync
+    const sheetWebhookUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
+    if (sheetWebhookUrl) {
+      try {
+        fetch(sheetWebhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            application_number: record.application_number,
+            full_name: record.full_name,
+            phone_number: `${record.phone_country_code} ${record.phone_number}`,
+            city: record.city,
+            state_region: record.state_region,
+            category_name: record.category_name,
+            fee_inr: categoryConfig.feeINR,
+            fee_basis: categoryConfig.feeBasis,
+            email: record.email,
+            registration_status: record.registration_status,
+            created_at: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+          }),
+        }).catch((e) => console.error('[GoogleSheetSync] Error:', e));
+      } catch (sheetErr) {
+        // Non-blocking
+      }
+    }
+
     return NextResponse.json(
       {
         success: true,
