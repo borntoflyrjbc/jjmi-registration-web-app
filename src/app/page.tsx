@@ -139,8 +139,13 @@ export default function RegistrationPage() {
           <div className="flex flex-col md:flex-row items-center justify-between min-h-[300px] sm:min-h-[340px] md:min-h-[360px]">
             {/* Left Column: Mission & Divine Connection */}
             <div className="w-full md:w-[48%] lg:w-[46%] py-8 sm:py-10 space-y-4 text-center md:text-left">
-              <div className="inline-flex items-center gap-2 bg-amber-400/15 text-amber-300 px-3.5 py-1 rounded-full text-xs font-semibold border border-amber-400/30">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <div className="inline-flex items-center gap-2.5 bg-amber-400/15 text-amber-300 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-amber-400/30">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/assets/official_mission_logo.png"
+                  alt="Official JJMI Logo"
+                  className="w-5 h-5 object-contain"
+                />
                 <span>Global Spiritual & Humanitarian Movement</span>
               </div>
 

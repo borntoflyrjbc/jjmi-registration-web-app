@@ -5,8 +5,9 @@ export const metadata: Metadata = {
   title: 'Jai Jagannath Mission International | Official Participant Application Form',
   description: 'Official Digital Participant Application Portal for Jai Jagannath Mission International under the spiritual guidance of Dr. Purshottam Tiwari.',
   icons: {
-    icon: '/assets/jjmi_round_logo.png',
-    apple: '/assets/jjmi_round_logo.png',
+    icon: '/favicon.png',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.png',
   },
 };
 
