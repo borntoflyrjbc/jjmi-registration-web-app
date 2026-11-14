@@ -3,6 +3,7 @@ import { createRegistration } from '@/lib/db';
 import { getCategoryById } from '@/lib/categories';
 import { ParticipationCategoryId } from '@/lib/types';
 import { submitRegistrationToGooglePipe } from '@/lib/sheets';
+import { saveCloudRegistration } from '@/lib/cloudStore';
 
 export async function POST(req: NextRequest) {
   try {
@@ -101,6 +102,11 @@ export async function POST(req: NextRequest) {
       registration_status: registrationStatus,
       payment_status: paymentStatus,
       google_sheet_sync_status: 'pending',
+    });
+
+    // Permanent Cloud Database Sync (Never loses old/new records on Vercel deployments)
+    saveCloudRegistration(record).catch((cloudErr) => {
+      console.error('[CloudStore Sync Error]:', cloudErr);
     });
 
     // Real-Time Google Sheet & Google Form Auto-Sync Pipe
