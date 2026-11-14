@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getAdminStats } from '@/lib/db';
 import { fetchCloudRegistrations } from '@/lib/cloudStore';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const cloudRecords = await fetchCloudRegistrations();

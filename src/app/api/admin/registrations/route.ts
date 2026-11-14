@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { listRegistrations } from '@/lib/db';
 import { fetchCloudRegistrations } from '@/lib/cloudStore';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);

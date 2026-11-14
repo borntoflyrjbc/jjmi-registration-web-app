@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { exportRegistrationsToCSV, listRegistrations } from '@/lib/db';
 import { fetchCloudRegistrations } from '@/lib/cloudStore';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     let records: any[] = [];
