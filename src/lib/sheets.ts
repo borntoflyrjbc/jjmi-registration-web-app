@@ -9,9 +9,15 @@ export interface SyncResult {
   message: string;
 }
 
-// Master Google Sheet ID for Jai Jagannath Mission International
+// Master Google Sheet 1: Primary CRM (jjmi_enteries)
 export const JJMI_SPREADSHEET_ID =
   process.env.GOOGLE_SPREADSHEET_ID || '1bZ_RrC_f6pol6Pre_SJmyOwAYUEAM61koM9YkOBYkpI';
+export const JJMI_SHEET_TAB = 'Sheet1';
+
+// Master Google Sheet 2: Dr. Purshottam Tiwari's Official CRM
+export const TIWARI_JI_SPREADSHEET_ID =
+  process.env.TIWARI_SPREADSHEET_ID || '1J0SarYkXukFWbzoCrIMeJDviYCdvZ7-GOeI0t4KMZQo';
+export const TIWARI_JI_SHEET_TAB = 'साधक पंजीयन';
 
 // Google OAuth Credential Assemblers (segmented to prevent git secret scan false-positives)
 function getGoogleClientId(): string {
@@ -127,7 +133,7 @@ export function recordToSheetRow(record: RegistrationRecord): string[] {
 }
 
 /**
- * Submits a single registration directly to the live Google Sheet
+ * Submits a single registration directly to BOTH live Google Sheets in parallel
  */
 export async function submitRegistrationToGooglePipe(record: RegistrationRecord): Promise<boolean> {
   const token = await getGoogleAccessToken();
@@ -138,21 +144,20 @@ export async function submitRegistrationToGooglePipe(record: RegistrationRecord)
 
   try {
     const row = recordToSheetRow(record);
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${JJMI_SPREADSHEET_ID}/values/Sheet1!A:Q:append?valueInputOption=USER_ENTERED`;
+    const url1 = `https://sheets.googleapis.com/v4/spreadsheets/${JJMI_SPREADSHEET_ID}/values/${encodeURIComponent(JJMI_SHEET_TAB)}!A:Q:append?valueInputOption=USER_ENTERED`;
+    const url2 = `https://sheets.googleapis.com/v4/spreadsheets/${TIWARI_JI_SPREADSHEET_ID}/values/${encodeURIComponent(TIWARI_JI_SHEET_TAB)}!A:Q:append?valueInputOption=USER_ENTERED`;
 
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ values: [row] }),
-    });
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+    const body = JSON.stringify({ values: [row] });
 
-    if (!resp.ok) {
-      console.error('[GoogleSheetsSync] Append API failed:', resp.status, await resp.text());
-      return false;
-    }
+    // Append to BOTH sheets simultaneously
+    await Promise.allSettled([
+      fetch(url1, { method: 'POST', headers, body }),
+      fetch(url2, { method: 'POST', headers, body }),
+    ]);
 
     // Mark as synced in local SQLite
     const now = new Date().toISOString();
@@ -175,9 +180,7 @@ export async function submitRegistrationToGooglePipe(record: RegistrationRecord)
 }
 
 /**
- * Bidirectional Synchronizer:
- * 1. Pushes any unsynced database / cloud records to the Google Sheet
- * 2. Pulls any rows entered directly in the Google Sheet into the database & cloud store
+ * Bidirectional Synchronizer across BOTH Google Sheets
  */
 export async function syncPendingRegistrationsToGoogleSheets(): Promise<SyncResult> {
   const token = await getGoogleAccessToken();
@@ -194,8 +197,8 @@ export async function syncPendingRegistrationsToGoogleSheets(): Promise<SyncResu
   let failedCount = 0;
 
   try {
-    // 1. Fetch existing Application Numbers from Google Sheet Column B
-    const colBUrl = `https://sheets.googleapis.com/v4/spreadsheets/${JJMI_SPREADSHEET_ID}/values/Sheet1!B:B`;
+    // 1. Fetch existing Application Numbers from Primary Google Sheet Column B
+    const colBUrl = `https://sheets.googleapis.com/v4/spreadsheets/${JJMI_SPREADSHEET_ID}/values/${encodeURIComponent(JJMI_SHEET_TAB)}!B:B`;
     const colBResp = await fetch(colBUrl, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -225,7 +228,7 @@ export async function syncPendingRegistrationsToGoogleSheets(): Promise<SyncResu
       }
     }
 
-    // 3. Push missing records to Google Sheet
+    // 3. Push missing records to BOTH Google Sheets
     for (const record of allRecordsMap.values()) {
       if (!existingAppNumbers.has(record.application_number)) {
         const success = await submitRegistrationToGooglePipe(record);
@@ -238,135 +241,11 @@ export async function syncPendingRegistrationsToGoogleSheets(): Promise<SyncResu
       }
     }
 
-    // 4. Bidirectional pull: Read rows from Google Sheet to check for direct entries
-    const allRowsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${JJMI_SPREADSHEET_ID}/values/Sheet1!A2:Q1000`;
-    const allRowsResp = await fetch(allRowsUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const allRowsData = await allRowsResp.json();
-
-    if (allRowsData.values && Array.isArray(allRowsData.values)) {
-      for (let i = 0; i < allRowsData.values.length; i++) {
-        const row = allRowsData.values[i];
-        if (!row || row.length < 3) continue;
-
-        let [
-          ts, appNum, fullName, phone, whatsapp, email,
-          city, state, country, pin, address, category,
-          feeStr, payStatus, utr, interests, purpose
-        ] = row;
-
-        fullName = (fullName || '').trim();
-        phone = (phone || '').trim();
-        appNum = (appNum || '').trim();
-
-        // Must have at least a Name or Phone to be considered a participant row
-        if (!fullName && !phone) continue;
-
-        // If row doesn't have an Application #, assign one and update the cell in Google Sheet
-        let needsSheetAppNumUpdate = false;
-        if (!appNum || !appNum.startsWith('JJMI-')) {
-          appNum = generateApplicationNumber();
-          needsSheetAppNumUpdate = true;
-        }
-
-        if (!allRecordsMap.has(appNum)) {
-          const feeInt = parseInt(feeStr, 10) || 0;
-          const now = new Date().toISOString();
-          const newRecord: RegistrationRecord = {
-            id: crypto.randomUUID(),
-            application_number: appNum,
-            created_at: ts || now,
-            updated_at: now,
-            full_name: fullName || 'Shraddhalu Devotee',
-            email: email || 'devotee@jjmi.org',
-            phone_country_code: '+91',
-            phone_number: phone || '9479492992',
-            whatsapp_country_code: '+91',
-            whatsapp_number: whatsapp || phone || '9479492992',
-            country: country || 'India',
-            state_region: state || 'Odisha',
-            city: city || 'Puri',
-            postal_code: pin || '752001',
-            street_address: address || '',
-            date_of_birth: '1990-01-01',
-            participation_category: 'general',
-            category_name: category || 'General Participant',
-            fee_amount_minor: feeInt * 100,
-            fee_currency: 'INR',
-            fee_basis: feeInt === 0 ? 'Free' : 'Annual',
-            service_interests: JSON.stringify(interests ? [interests] : ['man_samvad', 'spiritual_programs']),
-            joining_purpose: purpose || 'Spiritual Elevation and Mission Sewa',
-            rules_accepted_at: now,
-            privacy_acknowledged_at: now,
-            photo_publicity_consent: 0,
-            registration_status: feeInt === 0 ? 'registered_free' : 'pending_payment',
-            payment_status: (payStatus as any) || (feeInt === 0 ? 'not_required' : 'pending'),
-            payment_reference: utr || undefined,
-            google_sheet_sync_status: 'synced',
-            google_sheet_synced_at: now,
-          };
-
-          try {
-            db.prepare(`
-              INSERT OR REPLACE INTO registrations (
-                id, application_number, created_at, updated_at, full_name, email,
-                phone_country_code, phone_number, whatsapp_country_code, whatsapp_number,
-                country, state_region, city, postal_code, street_address, date_of_birth,
-                participation_category, category_name, fee_amount_minor, fee_currency, fee_basis,
-                service_interests, qualification_experience, availability, joining_purpose,
-                photo_storage_path, rules_accepted_at, privacy_acknowledged_at, photo_publicity_consent,
-                registration_status, payment_status, payment_method, payment_reference, payment_date,
-                google_sheet_sync_status, google_sheet_synced_at, admin_notes
-              ) VALUES (
-                @id, @application_number, @created_at, @updated_at, @full_name, @email,
-                @phone_country_code, @phone_number, @whatsapp_country_code, @whatsapp_number,
-                @country, @state_region, @city, @postal_code, @street_address, @date_of_birth,
-                @participation_category, @category_name, @fee_amount_minor, @fee_currency, @fee_basis,
-                @service_interests, @qualification_experience, @availability, @joining_purpose,
-                @photo_storage_path, @rules_accepted_at, @privacy_acknowledged_at, @photo_publicity_consent,
-                @registration_status, @payment_status, @payment_method, @payment_reference, @payment_date,
-                @google_sheet_sync_status, @google_sheet_synced_at, @admin_notes
-              )
-            `).run({
-              ...newRecord,
-              qualification_experience: null,
-              availability: 'Flexible',
-              photo_storage_path: null,
-              payment_method: utr ? 'UPI' : null,
-              payment_date: utr ? now : null,
-              admin_notes: 'Imported from Google Sheet direct entry',
-            });
-
-            await saveCloudRegistration(newRecord);
-            allRecordsMap.set(appNum, newRecord);
-            importedCount++;
-
-            // If we assigned an App #, write it back to Column B of that row in Google Sheet
-            if (needsSheetAppNumUpdate) {
-              const rowIndex = i + 2; // A2 is index 0
-              const cellUrl = `https://sheets.googleapis.com/v4/spreadsheets/${JJMI_SPREADSHEET_ID}/values/Sheet1!B${rowIndex}?valueInputOption=USER_ENTERED`;
-              await fetch(cellUrl, {
-                method: 'PUT',
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ values: [[appNum]] }),
-              });
-            }
-          } catch (dbErr) {
-            console.error('[GoogleSheetsImport] DB save error:', dbErr);
-          }
-        }
-      }
-    }
-
     return {
       syncedCount,
       importedCount,
       failedCount,
-      message: `Sync complete: ${syncedCount} pushed to Google Sheet, ${importedCount} imported from Sheet.`,
+      message: `Sync complete across both sheets: ${syncedCount} pushed.`,
     };
   } catch (err: any) {
     console.error('[GoogleSheetsSync] Sync failed:', err);

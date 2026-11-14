@@ -149,7 +149,16 @@ export default function AdminDashboardPage() {
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded-lg shadow-sm transition"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            Open Google Sheet
+            Sheet 1 (Master)
+          </a>
+          <a
+            href="https://docs.google.com/spreadsheets/d/1J0SarYkXukFWbzoCrIMeJDviYCdvZ7-GOeI0t4KMZQo/edit"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-amber-600/90 hover:bg-amber-500 text-white font-semibold rounded-lg shadow-sm transition"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Sheet 2 (तिवारी जी)
           </a>
           <button
             onClick={handleRetrySheets}
