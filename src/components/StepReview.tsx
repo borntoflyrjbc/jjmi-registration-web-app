@@ -1,6 +1,6 @@
 import React from 'react';
-import { getCategoryById } from '@/lib/categories';
-import { ShieldCheck, User, MapPin, Award, ArrowLeft } from 'lucide-react';
+import { getCategoryById, SERVICE_INTEREST_OPTIONS } from '@/lib/categories';
+import { ShieldCheck, User, MapPin, Award, HeartHandshake } from 'lucide-react';
 
 interface StepReviewProps {
   formData: any;
@@ -12,6 +12,11 @@ interface StepReviewProps {
 export const StepReview: React.FC<StepReviewProps> = ({ formData, updateFormData, onEditStep }) => {
   const category = getCategoryById(formData.participation_category || 'general');
   const isFree = category?.id === 'well_wisher' || category?.feeINR === 0;
+
+  const selectedInterests = Array.isArray(formData.service_interests) ? formData.service_interests : [];
+  const selectedInterestLabels = SERVICE_INTEREST_OPTIONS.filter((opt) =>
+    selectedInterests.includes(opt.id)
+  );
 
   return (
     <div className="space-y-5">
@@ -25,35 +30,38 @@ export const StepReview: React.FC<StepReviewProps> = ({ formData, updateFormData
             Review Your Details • समीक्षा एवं पुष्टि
           </h2>
           <p className="text-xs sm:text-sm text-stone-600 mt-0.5">
-            Please verify your information before {isFree ? 'confirming registration' : 'proceeding to payment'}.
+            कृपया अपनी जानकारी की समीक्षा करें (Please verify your details before {isFree ? 'confirming registration' : 'proceeding to payment'}):
           </p>
         </div>
       </div>
 
       {/* Summary Review Card */}
       <div className="bg-stone-50/80 rounded-2xl border border-stone-200/90 p-4 sm:p-5 space-y-4">
-        {/* Category Header */}
-        <div className="flex items-center justify-between pb-3.5 border-b border-stone-200">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold flex-shrink-0">
+        {/* Category Highlight */}
+        <div className="flex items-start justify-between gap-3 pb-4 border-b border-stone-200">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-600/10 border border-amber-300 flex items-center justify-center text-amber-800 flex-shrink-0">
               <Award className="w-4 h-4 text-amber-700" />
             </div>
             <div>
-              <div className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">Category</div>
-              <div className="font-bold text-[#081d36] text-sm sm:text-base">{category?.name}</div>
-              <div className="text-xs text-amber-800 font-medium">{category?.hindiName}</div>
+              <div className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">सहभागिता श्रेणी (Category)</div>
+              <div className="font-bold text-[#081d36] text-sm sm:text-base">{category?.hindiName}</div>
+              <div className="text-xs text-stone-500 font-medium">{category?.name}</div>
             </div>
           </div>
           <div className="text-right">
             <div className="text-base sm:text-lg font-extrabold text-[#081d36]">
-              {isFree ? 'Free (निःशुल्क)' : `₹${category?.feeINR.toLocaleString('en-IN')}`}
+              {isFree ? 'निःशुल्क (Free)' : `₹${category?.feeINR.toLocaleString('en-IN')}`}
+            </div>
+            <div className="text-[10px] text-stone-500">
+              {category?.feeBasis === 'Free' ? 'Free' : category?.feeBasis === 'One-time' ? 'एकमुश्त' : 'वार्षिक'}
             </div>
             <button
               type="button"
               onClick={() => onEditStep(2)}
               className="text-xs text-amber-800 hover:underline font-bold mt-0.5 inline-block cursor-pointer"
             >
-              Change Category
+              श्रेणी बदलें
             </button>
           </div>
         </div>
@@ -97,6 +105,35 @@ export const StepReview: React.FC<StepReviewProps> = ({ formData, updateFormData
           )}
         </div>
 
+        {/* Selected Service Interests (Section C) */}
+        {selectedInterestLabels.length > 0 && (
+          <div className="pt-3 border-t border-stone-200/80 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <HeartHandshake className="w-3.5 h-3.5 text-amber-700" />
+                <span>सेवा में रुचि (Selected Service Interests):</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => onEditStep(2)}
+                className="text-[11px] text-amber-800 hover:underline font-semibold cursor-pointer"
+              >
+                संशोधन करें
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1.5 pt-0.5">
+              {selectedInterestLabels.map((item) => (
+                <span
+                  key={item.id}
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-100/70 text-amber-900 border border-amber-200/80"
+                >
+                  ✓ {item.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Quick Edit Details Button */}
         <div className="pt-2 border-t border-stone-200/70 flex justify-end">
           <button
@@ -119,7 +156,7 @@ export const StepReview: React.FC<StepReviewProps> = ({ formData, updateFormData
             className="mt-0.5 w-4 h-4 text-amber-700 rounded border-stone-300 focus:ring-amber-500 accent-amber-700"
           />
           <span>
-            I agree to participate in the spiritual, humanitarian, and cultural welfare activities of <strong>Jai Jagannath Mission International</strong>.
+            मैं <strong>जय जगन्नाथ मिशन अन्तर्राष्ट्रीय</strong> की आध्यात्मिक, सेवा एवं सांस्कृतिक कल्याणकारी गतिविधियों में सम्मिलित होने हेतु पूर्णतः सहमत हूँ।
           </span>
         </label>
       </div>
