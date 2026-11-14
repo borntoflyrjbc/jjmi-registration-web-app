@@ -6,9 +6,6 @@ import { Footer } from '@/components/Footer';
 import { StepIndicator } from '@/components/StepIndicator';
 import { StepPersonal } from '@/components/StepPersonal';
 import { StepCategory } from '@/components/StepCategory';
-import { StepLocation } from '@/components/StepLocation';
-import { StepInterests } from '@/components/StepInterests';
-import { StepBackground } from '@/components/StepBackground';
 import { StepReview } from '@/components/StepReview';
 import { PaymentPanel } from '@/components/PaymentPanel';
 import { getCategoryById } from '@/lib/categories';
@@ -32,9 +29,9 @@ export default function RegistrationPage() {
     country: 'India',
     state_region: '',
     city: '',
-    postal_code: '',
-    street_address: '',
-    date_of_birth: '',
+    postal_code: '752001',
+    street_address: 'Grand Road, Puri',
+    date_of_birth: '1995-01-01',
     participation_category: 'general',
     service_interests: [
       'spiritual_programs',
@@ -42,25 +39,16 @@ export default function RegistrationPage() {
       'man_samvad',
       'annadan_service',
     ],
-    qualification_experience: '',
-    availability: 'Weekends / Flexible',
-    joining_purpose: '',
     rulesAccepted: true,
     privacyAcknowledged: true,
-    photo_publicity_consent: false,
   });
 
   const updateFormData = (fields: any) => {
     setFormData((prev: any) => ({ ...prev, ...fields }));
   };
 
-  // Zero-blocking validation: allows seamless testing and dummy submissions
-  const validateStep = (_s: number): boolean => {
-    return true;
-  };
-
   const nextStep = () => {
-    setStep((prev) => Math.min(prev + 1, 6));
+    setStep((prev) => Math.min(prev + 1, 3));
     window.scrollTo({ top: 380, behavior: 'smooth' });
   };
 
@@ -113,8 +101,8 @@ export default function RegistrationPage() {
         // ignore
       }
 
-      // Move to Step 7 (Payment or Free Success)
-      setStep(7);
+      // Move to Step 4 (Payment or Free Success)
+      setStep(4);
       window.scrollTo({ top: 200, behavior: 'smooth' });
     } catch (err: any) {
       setSubmissionError(err.message || 'An unexpected error occurred during submission.');
@@ -135,7 +123,7 @@ export default function RegistrationPage() {
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
 
-        {/* Desktop Edge-to-Edge Artwork Container (Fills Right Half from top to bottom) */}
+        {/* Desktop Edge-to-Edge Artwork Container (Fills Right Half from top to bottom flush) */}
         <div className="hidden md:block absolute right-0 top-0 bottom-0 w-[50%] lg:w-[52%] h-full overflow-hidden z-0">
           {/* Smooth left-edge fade into navy background */}
           <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#081d36] via-[#081d36]/60 to-transparent z-10 pointer-events-none" />
@@ -186,18 +174,35 @@ export default function RegistrationPage() {
       </section>
 
       {/* Main Form Working Area */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:py-10">
-        {step < 7 ? (
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 sm:py-9">
+        {step < 4 ? (
           <div>
-            {/* Step Progress Bar with Free Step Navigation */}
+            {/* 3-Step Progress Bar: Click any step to jump directly */}
             <StepIndicator
               currentStep={step}
-              totalSteps={6}
+              totalSteps={3}
               onStepClick={(s) => setStep(s)}
             />
 
             {/* Form Container Card */}
-            <div className="bg-white rounded-3xl border border-stone-200/90 shadow-md p-5 sm:p-8 relative">
+            <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-5 sm:p-8 relative">
+              {/* Top Navigation Row: Back Button on Step 2 & 3 */}
+              {step > 1 && (
+                <div className="flex items-center justify-between pb-4 mb-4 border-b border-stone-100">
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-300 hover:bg-stone-50 text-slate-700 font-semibold text-xs transition cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>← Back (पिछला कदम)</span>
+                  </button>
+                  <span className="text-xs text-stone-500 font-medium">
+                    Step {step} of 3
+                  </span>
+                </div>
+              )}
+
               {submissionError && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-red-800 text-xs sm:text-sm">
                   <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -208,7 +213,7 @@ export default function RegistrationPage() {
                 </div>
               )}
 
-              {/* Step Forms (1 to 6) */}
+              {/* 3 Clean Steps */}
               {step === 1 && (
                 <StepPersonal
                   formData={formData}
@@ -225,29 +230,6 @@ export default function RegistrationPage() {
               )}
 
               {step === 3 && (
-                <StepLocation
-                  formData={formData}
-                  updateFormData={updateFormData}
-                />
-              )}
-
-              {step === 4 && (
-                <StepInterests
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  errors={{}}
-                />
-              )}
-
-              {step === 5 && (
-                <StepBackground
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  errors={{}}
-                />
-              )}
-
-              {step === 6 && (
                 <StepReview
                   formData={formData}
                   updateFormData={updateFormData}
@@ -255,7 +237,7 @@ export default function RegistrationPage() {
                 />
               )}
 
-              {/* Navigation Controls */}
+              {/* Bottom Navigation Controls */}
               <div className="mt-8 pt-5 border-t border-stone-100 flex items-center justify-between gap-3">
                 {step > 1 ? (
                   <button
@@ -264,19 +246,19 @@ export default function RegistrationPage() {
                     className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-stone-300 text-slate-700 hover:bg-stone-50 font-semibold text-xs sm:text-sm transition cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    <span>Back</span>
+                    <span>Back (पिछला)</span>
                   </button>
                 ) : (
                   <div />
                 )}
 
-                {step < 6 ? (
+                {step < 3 ? (
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="flex items-center gap-1.5 px-7 py-2.5 rounded-xl bg-[#081d36] hover:bg-[#0c2a4d] text-white font-bold text-xs sm:text-sm transition shadow-sm ml-auto cursor-pointer"
+                    className="flex items-center gap-1.5 px-7 py-2.5 rounded-xl bg-[#081d36] hover:bg-[#0c2a4d] text-white font-bold text-xs sm:text-sm transition shadow-2xs ml-auto cursor-pointer"
                   >
-                    <span>Next Step</span>
+                    <span>{step === 1 ? 'Next: Choose Category' : 'Next: Review Details'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 ) : (
@@ -284,7 +266,7 @@ export default function RegistrationPage() {
                     type="button"
                     disabled={isSubmitting}
                     onClick={handleSubmit}
-                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-bold text-sm sm:text-base transition shadow-md disabled:opacity-50 ml-auto cursor-pointer"
+                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-bold text-sm sm:text-base transition shadow-sm disabled:opacity-50 ml-auto cursor-pointer"
                   >
                     {isSubmitting ? (
                       <>
@@ -293,7 +275,7 @@ export default function RegistrationPage() {
                       </>
                     ) : (
                       <>
-                        <span>{isFree ? 'Complete Free Registration' : 'Proceed to Payment'}</span>
+                        <span>{isFree ? 'Complete Free Registration' : 'Proceed to Payment (भुगतान करें)'}</span>
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
@@ -303,8 +285,8 @@ export default function RegistrationPage() {
             </div>
           </div>
         ) : (
-          /* Step 7: Completed Registration / Payment Screen */
-          <div className="bg-white rounded-3xl border border-stone-200 shadow-xl p-5 sm:p-8">
+          /* Step 4: Completed Registration / Payment Screen */
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-5 sm:p-8">
             {isFree ? (
               /* Free Well-Wisher Success State */
               <div className="text-center py-6 space-y-4 max-w-xl mx-auto">
@@ -345,8 +327,8 @@ export default function RegistrationPage() {
 
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-stone-500">Mobile Number:</span>
-                    <span className="text-slate-700 text-xs">
-                      {createdRegistration?.phone_country_code} {createdRegistration?.phone_number}
+                    <span className="text-slate-700 text-xs font-mono">
+                      +91 {createdRegistration?.phone_number}
                     </span>
                   </div>
 
@@ -361,10 +343,13 @@ export default function RegistrationPage() {
                 <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
                   <button
                     type="button"
-                    onClick={() => window.print()}
-                    className="w-full sm:w-auto px-5 py-2.5 bg-[#081d36] hover:bg-[#0c2a4d] text-white rounded-xl text-xs sm:text-sm font-semibold transition"
+                    onClick={() => {
+                      setCreatedRegistration(null);
+                      setStep(1);
+                    }}
+                    className="w-full sm:w-auto px-5 py-2.5 bg-stone-100 hover:bg-stone-200 text-slate-800 rounded-xl text-xs sm:text-sm font-semibold transition border border-stone-300 cursor-pointer"
                   >
-                    Print Registration Slip
+                    ← Register Another Person
                   </button>
                   <Link
                     href={`/success?appNumber=${createdRegistration?.application_number}`}
@@ -375,12 +360,17 @@ export default function RegistrationPage() {
                 </div>
               </div>
             ) : (
-              /* Paid Category: UPI QR & Verification Panel */
+              /* Paid Category: UPI QR & Verification Panel with Back to Edit support */
               createdRegistration && (
                 <PaymentPanel
                   registration={createdRegistration}
                   onPaymentVerified={() => {
-                    // Optional callback
+                    // Refresh or celebratory update
+                  }}
+                  onBackToEdit={() => {
+                    setCreatedRegistration(null);
+                    setStep(1);
+                    window.scrollTo({ top: 380, behavior: 'smooth' });
                   }}
                 />
               )
