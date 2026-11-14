@@ -12,6 +12,19 @@ if (!fs.existsSync(dataDir)) {
 }
 
 const dbPath = path.join(dataDir, 'jjmi_master.db');
+
+// On Vercel serverless, seed /tmp with bundled master DB on cold starts
+if (process.env.VERCEL) {
+  const bundledDbPath = path.join(process.cwd(), 'data', 'jjmi_master.db');
+  if (!fs.existsSync(dbPath) && fs.existsSync(bundledDbPath)) {
+    try {
+      fs.copyFileSync(bundledDbPath, dbPath);
+    } catch (e) {
+      console.warn('[DB] Failed to copy bundled DB to /tmp:', e);
+    }
+  }
+}
+
 const db = new Database(dbPath);
 
 // Enable WAL mode for high concurrency

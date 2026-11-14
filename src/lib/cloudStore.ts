@@ -49,7 +49,22 @@ export async function fetchCloudRegistrations(): Promise<RegistrationRecord[]> {
 export async function saveCloudRegistration(newRecord: RegistrationRecord): Promise<boolean> {
   try {
     const existing = await fetchCloudRegistrations();
-    const filtered = existing.filter(
+
+    // Safety guard: If cloud fetch returns empty, do not wipe! Merge with local records
+    let baseList = existing;
+    if (baseList.length === 0) {
+      try {
+        const { listRegistrations } = await import('./db');
+        const local = listRegistrations({ limit: 1000 });
+        if (local.records && local.records.length > 0) {
+          baseList = local.records;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    const filtered = baseList.filter(
       (r) => r.id !== newRecord.id && r.application_number !== newRecord.application_number
     );
     filtered.push(newRecord);

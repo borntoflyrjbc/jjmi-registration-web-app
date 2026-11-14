@@ -25,8 +25,7 @@ yarn-error.log*
 # Local environment
 .env*.local
 
-# Database
-/data/*.db
+# Database temporary WAL/SHM files
 /data/*.db-wal
 /data/*.db-shm
 
