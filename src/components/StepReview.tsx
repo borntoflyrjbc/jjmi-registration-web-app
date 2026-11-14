@@ -30,7 +30,7 @@ export const StepReview: React.FC<StepReviewProps> = ({ formData, updateFormData
             Review Your Details • समीक्षा एवं पुष्टि
           </h2>
           <p className="text-xs sm:text-sm text-stone-600 mt-0.5">
-            कृपया अपनी जानकारी की समीक्षा करें (Please verify your details before {isFree ? 'confirming registration' : 'proceeding to payment'}):
+            कृपया अपनी जानकारी की समीक्षा करें (Please verify before {isFree ? 'confirming registration' : 'proceeding to payment'}):
           </p>
         </div>
       </div>
@@ -40,8 +40,8 @@ export const StepReview: React.FC<StepReviewProps> = ({ formData, updateFormData
         {/* Category Highlight */}
         <div className="flex items-start justify-between gap-3 pb-4 border-b border-stone-200">
           <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-600/10 border border-amber-300 flex items-center justify-center text-amber-800 flex-shrink-0">
-              <Award className="w-4 h-4 text-amber-700" />
+            <div className="w-10 h-10 rounded-xl bg-amber-600/10 border border-amber-300 flex items-center justify-center text-xl flex-shrink-0">
+              {category?.emoji || '🪷'}
             </div>
             <div>
               <div className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">सहभागिता श्रेणी (Category)</div>
@@ -125,9 +125,10 @@ export const StepReview: React.FC<StepReviewProps> = ({ formData, updateFormData
               {selectedInterestLabels.map((item) => (
                 <span
                   key={item.id}
-                  className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-100/70 text-amber-900 border border-amber-200/80"
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-100/70 text-amber-900 border border-amber-200/80 flex items-center gap-1"
                 >
-                  ✓ {item.label}
+                  <span>{item.emoji}</span>
+                  <span>{item.label}</span>
                 </span>
               ))}
             </div>
