@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { VisitorTracker } from '@/components/VisitorTracker';
 
 export const metadata: Metadata = {
   title: 'Jai Jagannath Mission International | Official Participant Application Form',
@@ -34,6 +35,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-[#faf6ee] text-[#1e293b] antialiased selection:bg-[#c99738]/20 selection:text-[#081d36] min-h-screen flex flex-col font-sans">
+        <VisitorTracker />
         {children}
       </body>
     </html>

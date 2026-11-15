@@ -1,4 +1,4 @@
-import { RegistrationRecord } from './types';
+import { RegistrationRecord, VisitorEvent } from './types';
 
 // GitHub Gist Cloud Database Engine for JJMI Registration App
 const GIST_ID = process.env.GITHUB_GIST_ID || '5092d80cfc4efcf288fdb582ba46da8b';
@@ -143,3 +143,72 @@ export async function updateCloudRegistrationStatus(
     return false;
   }
 }
+
+export async function fetchCloudVisitors(): Promise<VisitorEvent[]> {
+  try {
+    const headers: Record<string, string> = {
+      'User-Agent': 'JJMI-Registration-App',
+      Accept: 'application/vnd.github.v3+json',
+    };
+
+    const token = getStorageToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      headers,
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      return [];
+    }
+
+    const data = await res.json();
+    const content = data.files?.['jjmi_visitors.json']?.content;
+    if (!content) return [];
+
+    return JSON.parse(content) as VisitorEvent[];
+  } catch (err) {
+    console.error('[CloudStore] Error reading visitors:', err);
+    return [];
+  }
+}
+
+export async function saveCloudVisitor(event: VisitorEvent): Promise<boolean> {
+  try {
+    const existing = await fetchCloudVisitors();
+    
+    // Prevent duplicate event id
+    const filtered = existing.filter((e) => e.id !== event.id);
+    filtered.push(event);
+
+    // Keep the latest 5000 visitor events for fast response and payload safety
+    const trimmed = filtered.slice(-5000);
+
+    const token = getStorageToken();
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'User-Agent': 'JJMI-Registration-App',
+        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        files: {
+          'jjmi_visitors.json': {
+            content: JSON.stringify(trimmed, null, 2),
+          },
+        },
+      }),
+    });
+
+    return res.ok;
+  } catch (err) {
+    console.error('[CloudStore] Error saving visitor event:', err);
+    return false;
+  }
+}
+

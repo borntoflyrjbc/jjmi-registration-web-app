@@ -1,1 +1,11 @@
-refactor: move Dr. Tiwari flipped to header right, full Jagannath hero artwork, and remove sub-badges
+feat: visitor analytics and tracking system + header layout update (tiwari ji photo on right)
+
+- Swapped Dr. Purushottam Tiwari photo to the right with credentials on the left (mobile and desktop)
+- Implemented privacy-conscious Visitor Analytics & Tracking System:
+  - Client-side VisitorTracker component with sessionStorage deduplication
+  - Server-side /api/track endpoint with bot filtering, salted IP hashing, device detection, and IST timestamps
+  - Persistent SQLite visitor_events table + GitHub Gist cloud store sync for Vercel
+  - Admin dashboard analytics section: 6 compact KPI cards (Total, Today, Yesterday, Unique, 7d, Month)
+  - Daily traffic trend interactive bar chart and breakdown table with 7d/30d/All-Time filter
+  - Device breakdown (Mobile/Desktop/Tablet) and campaign source attribution (Meta Ads, Social, Direct)
+  - /api/admin/export-visitors CSV download endpoint with Excel UTF-8 BOM

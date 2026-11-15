@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
-import { RegistrationRecord, AdminStats } from './types';
+import { RegistrationRecord, AdminStats, VisitorEvent, VisitorAnalyticsSummary } from './types';
 
 const dataDir = process.env.VERCEL
   ? path.join('/tmp', 'jjmi_data')
@@ -103,6 +103,30 @@ db.exec(`
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS visitor_events (
+    id TEXT PRIMARY KEY,
+    visitor_id TEXT NOT NULL,
+    visited_at TEXT NOT NULL,
+    visited_at_ist TEXT NOT NULL,
+    date_ist TEXT NOT NULL,
+    page_url TEXT NOT NULL,
+    referrer TEXT,
+    referrer_source TEXT NOT NULL,
+    device_type TEXT NOT NULL,
+    browser TEXT NOT NULL,
+    os TEXT NOT NULL,
+    user_agent TEXT,
+    ip_hash TEXT,
+    utm_source TEXT,
+    utm_medium TEXT,
+    utm_campaign TEXT,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_visitors_visited_at ON visitor_events(visited_at);
+  CREATE INDEX IF NOT EXISTS idx_visitors_date_ist ON visitor_events(date_ist);
+  CREATE INDEX IF NOT EXISTS idx_visitors_visitor_id ON visitor_events(visitor_id);
 `);
 
 export function generateApplicationNumber(): string {
@@ -376,6 +400,243 @@ export function exportRegistrationsToCSV(): string {
   ].join(','));
 
   return [headers.join(','), ...rows].join('\n');
+}
+
+export function getISTDateString(d: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d);
+}
+
+export function getISTFormatted(d: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    dateStyle: 'medium',
+    timeStyle: 'medium',
+  }).format(d);
+}
+
+export function recordVisitorEvent(data: Omit<VisitorEvent, 'id' | 'created_at'>): VisitorEvent {
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+  const event: VisitorEvent = {
+    ...data,
+    id,
+    created_at: now,
+  };
+
+  const stmt = db.prepare(`
+    INSERT INTO visitor_events (
+      id, visitor_id, visited_at, visited_at_ist, date_ist,
+      page_url, referrer, referrer_source, device_type,
+      browser, os, user_agent, ip_hash,
+      utm_source, utm_medium, utm_campaign, created_at
+    ) VALUES (
+      @id, @visitor_id, @visited_at, @visited_at_ist, @date_ist,
+      @page_url, @referrer, @referrer_source, @device_type,
+      @browser, @os, @user_agent, @ip_hash,
+      @utm_source, @utm_medium, @utm_campaign, @created_at
+    )
+  `);
+
+  stmt.run({
+    id: event.id,
+    visitor_id: event.visitor_id,
+    visited_at: event.visited_at,
+    visited_at_ist: event.visited_at_ist,
+    date_ist: event.date_ist,
+    page_url: event.page_url,
+    referrer: event.referrer ?? '',
+    referrer_source: event.referrer_source ?? 'Direct',
+    device_type: event.device_type ?? 'Desktop',
+    browser: event.browser ?? 'Unknown',
+    os: event.os ?? 'Unknown',
+    user_agent: event.user_agent ?? null,
+    ip_hash: event.ip_hash ?? null,
+    utm_source: event.utm_source ?? null,
+    utm_medium: event.utm_medium ?? null,
+    utm_campaign: event.utm_campaign ?? null,
+    created_at: event.created_at,
+  });
+
+  return event;
+}
+
+export function getVisitorAnalytics(cloudVisitors: VisitorEvent[] = []): VisitorAnalyticsSummary {
+  let localEvents: VisitorEvent[] = [];
+  try {
+    localEvents = db.prepare('SELECT * FROM visitor_events ORDER BY visited_at DESC').all() as VisitorEvent[];
+  } catch (e) {
+    console.warn('[DB] Failed to read local visitor events:', e);
+  }
+
+  const eventMap = new Map<string, VisitorEvent>();
+  for (const e of localEvents) {
+    if (e.id) eventMap.set(e.id, e);
+  }
+  for (const e of cloudVisitors) {
+    if (e.id) eventMap.set(e.id, e);
+  }
+
+  const allEvents = Array.from(eventMap.values());
+
+  const now = new Date();
+  const todayStr = getISTDateString(now);
+
+  const yesterdayDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const yesterdayStr = getISTDateString(yesterdayDate);
+
+  const sevenDaysAgoDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const sevenDaysAgoStr = getISTDateString(sevenDaysAgoDate);
+
+  const thisMonthPrefix = todayStr.slice(0, 7);
+
+  let totalVisits = allEvents.length;
+  let todayVisits = 0;
+  let yesterdayVisits = 0;
+  let last7DaysVisits = 0;
+  let thisMonthVisits = 0;
+
+  const uniqueVisitorSet = new Set<string>();
+  const deviceCounts = { mobile: 0, desktop: 0, tablet: 0 };
+  const sourceMap = new Map<string, number>();
+  const dailyMap = new Map<string, { total: number; visitors: Set<string>; mobile: number; desktop: number; tablet: number }>();
+
+  // Initialize last 7 days so days with 0 visits appear cleanly in sequence
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const dStr = getISTDateString(d);
+    dailyMap.set(dStr, { total: 0, visitors: new Set(), mobile: 0, desktop: 0, tablet: 0 });
+  }
+
+  for (const ev of allEvents) {
+    const dStr = ev.date_ist || (ev.visited_at ? getISTDateString(new Date(ev.visited_at)) : todayStr);
+    uniqueVisitorSet.add(ev.visitor_id);
+
+    if (dStr === todayStr) todayVisits++;
+    if (dStr === yesterdayStr) yesterdayVisits++;
+    if (dStr >= sevenDaysAgoStr) last7DaysVisits++;
+    if (dStr.startsWith(thisMonthPrefix)) thisMonthVisits++;
+
+    const dev = (ev.device_type || 'Desktop').toLowerCase();
+    if (dev === 'mobile') deviceCounts.mobile++;
+    else if (dev === 'tablet') deviceCounts.tablet++;
+    else deviceCounts.desktop++;
+
+    const src = ev.referrer_source || 'Direct';
+    sourceMap.set(src, (sourceMap.get(src) || 0) + 1);
+
+    if (!dailyMap.has(dStr)) {
+      dailyMap.set(dStr, { total: 0, visitors: new Set(), mobile: 0, desktop: 0, tablet: 0 });
+    }
+    const dayData = dailyMap.get(dStr)!;
+    dayData.total++;
+    dayData.visitors.add(ev.visitor_id);
+    if (dev === 'mobile') dayData.mobile++;
+    else if (dev === 'tablet') dayData.tablet++;
+    else dayData.desktop++;
+  }
+
+  const sortedDates = Array.from(dailyMap.keys()).sort();
+  const dailyBreakdown = sortedDates.map((fullDate) => {
+    const data = dailyMap.get(fullDate)!;
+    const parts = fullDate.split('-');
+    const m = parts[1] || '01';
+    const d = parts[2] || '01';
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const monthName = months[parseInt(m, 10) - 1] || m;
+    const formattedDate = `${parseInt(d, 10)} ${monthName}`;
+
+    return {
+      date: formattedDate,
+      fullDate,
+      totalVisits: data.total,
+      uniqueVisitors: data.visitors.size,
+      mobile: data.mobile,
+      desktop: data.desktop,
+      tablet: data.tablet,
+    };
+  });
+
+  const sources = Array.from(sourceMap.entries())
+    .map(([source, count]) => ({ source, count }))
+    .sort((a, b) => b.count - a.count);
+
+  return {
+    totalVisits,
+    todayVisits,
+    yesterdayVisits,
+    uniqueVisitors: uniqueVisitorSet.size,
+    last7DaysVisits,
+    thisMonthVisits,
+    devices: deviceCounts,
+    sources,
+    dailyBreakdown,
+  };
+}
+
+export function exportVisitorsToCSV(cloudVisitors: VisitorEvent[] = []): string {
+  let localEvents: VisitorEvent[] = [];
+  try {
+    localEvents = db.prepare('SELECT * FROM visitor_events ORDER BY visited_at DESC').all() as VisitorEvent[];
+  } catch (e) {
+    console.warn('[DB] Failed to read local visitor events:', e);
+  }
+
+  const map = new Map<string, VisitorEvent>();
+  for (const e of localEvents) {
+    if (e.id) map.set(e.id, e);
+  }
+  for (const e of cloudVisitors) {
+    if (e.id) map.set(e.id, e);
+  }
+
+  const records = Array.from(map.values()).sort((a, b) => {
+    return new Date(b.visited_at).getTime() - new Date(a.visited_at).getTime();
+  });
+
+  const headers = [
+    'Visit Timestamp (IST)',
+    'Visitor ID (Anonymous)',
+    'Page URL',
+    'Referrer Source',
+    'Referrer URL',
+    'Device Type',
+    'Browser',
+    'OS',
+    'UTM Source',
+    'UTM Medium',
+    'UTM Campaign',
+  ];
+
+  const escapeCSV = (val: any) => {
+    if (val === null || val === undefined) return '';
+    let str = String(val).replace(/"/g, '""');
+    if (str.startsWith('=') || str.startsWith('+') || str.startsWith('-') || str.startsWith('@')) {
+      str = "'" + str;
+    }
+    return `"${str}"`;
+  };
+
+  const rows = records.map((r) => [
+    escapeCSV(r.visited_at_ist || r.visited_at),
+    escapeCSV(r.visitor_id),
+    escapeCSV(r.page_url),
+    escapeCSV(r.referrer_source),
+    escapeCSV(r.referrer || 'Direct'),
+    escapeCSV(r.device_type),
+    escapeCSV(r.browser),
+    escapeCSV(r.os),
+    escapeCSV(r.utm_source || ''),
+    escapeCSV(r.utm_medium || ''),
+    escapeCSV(r.utm_campaign || ''),
+  ].join(','));
+
+  // Prepend UTF-8 BOM (\uFEFF) for Microsoft Excel compatibility
+  return '\uFEFF' + [headers.join(','), ...rows].join('\n');
 }
 
 export default db;

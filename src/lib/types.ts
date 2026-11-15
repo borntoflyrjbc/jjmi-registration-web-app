@@ -84,3 +84,51 @@ export interface AdminStats {
   totalCollectedINR: number;
 }
 
+export interface VisitorEvent {
+  id: string;
+  visitor_id: string;
+  visited_at: string;
+  visited_at_ist: string;
+  date_ist: string;
+  page_url: string;
+  referrer: string;
+  referrer_source: string;
+  device_type: 'Mobile' | 'Desktop' | 'Tablet';
+  browser: string;
+  os: string;
+  user_agent?: string;
+  ip_hash?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  created_at: string;
+}
+
+export interface VisitorAnalyticsSummary {
+  totalVisits: number;
+  todayVisits: number;
+  yesterdayVisits: number;
+  uniqueVisitors: number;
+  last7DaysVisits: number;
+  thisMonthVisits: number;
+  devices: {
+    mobile: number;
+    desktop: number;
+    tablet: number;
+  };
+  sources: {
+    source: string;
+    count: number;
+  }[];
+  dailyBreakdown: {
+    date: string;
+    fullDate: string;
+    totalVisits: number;
+    uniqueVisitors: number;
+    mobile: number;
+    desktop: number;
+    tablet: number;
+  }[];
+}
+
+

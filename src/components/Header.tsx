@@ -94,20 +94,10 @@ export const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* Right: Dr. Purushottam Tiwari (NO BOX, FULL SECTION HEIGHT, SEAMLESS BLEND) */}
+          {/* Right: Dr. Purushottam Tiwari (Photo on Right, Hindi credentials on Left, Inward Facing) */}
           <div className="flex items-end gap-3 sm:gap-4 flex-shrink-0 self-center lg:self-end pt-2 lg:pt-0">
-            {/* Full transparent cutout image: Made BIG to fill the section height */}
-            <div className="h-28 sm:h-32 lg:h-36 w-auto flex-shrink-0 flex items-end">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/assets/dr_tiwari_flipped.png"
-                alt="डॉ. पुरुषोत्तम तिवारी"
-                className="h-full w-auto object-contain object-bottom filter drop-shadow-md transition-transform hover:scale-105 duration-300"
-              />
-            </div>
-
-            {/* Exact Hindi credentials beside him (Clean typography without box constraint) */}
-            <div className="text-left pb-2 sm:pb-3 select-none">
+            {/* Exact Hindi credentials on the left */}
+            <div className="text-right pb-2 sm:pb-3 select-none">
               <div className="text-sm sm:text-base lg:text-lg font-bold text-[#0f284e] font-serif tracking-tight leading-snug">
                 डॉ. पुरुषोत्तम तिवारी
               </div>
@@ -117,6 +107,16 @@ export const Header: React.FC = () => {
               <div className="text-[10px] sm:text-[11px] text-stone-600 font-medium leading-tight mt-0.5">
                 जय जगन्नाथ मिशन अन्तर्राष्ट्रीय
               </div>
+            </div>
+
+            {/* Full transparent cutout image on the right */}
+            <div className="h-28 sm:h-32 lg:h-36 w-auto flex-shrink-0 flex items-end">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/dr_tiwari_flipped.png"
+                alt="डॉ. पुरुषोत्तम तिवारी"
+                className="h-full w-auto object-contain object-bottom filter drop-shadow-md transition-transform hover:scale-105 duration-300"
+              />
             </div>
           </div>
 
